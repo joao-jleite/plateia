@@ -10,12 +10,16 @@ import '../../features/auth/presentation/reset_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/feed/presentation/feed_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/lists/presentation/list_screen.dart';
 import '../../features/onboarding/presentation/import_placeholder_screen.dart';
 import '../../features/onboarding/presentation/my_profile_provider.dart';
 import '../../features/onboarding/presentation/username_screen.dart';
-import '../../features/profile/presentation/profile_tab_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/stats_screen.dart';
 import '../../features/search/presentation/search_screen.dart';
 import '../../features/settings/presentation/about_screen.dart';
+import '../../features/settings/presentation/edit_profile_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/shell/presentation/app_shell.dart';
 import '../../features/shell/presentation/splash_screen.dart';
 import '../../features/subscribe/presentation/subscribe_screen.dart';
@@ -58,7 +62,27 @@ GoRouter appRouter(Ref ref) {
       GoRoute(path: Routes.newPassword, builder: (_, _) => const NewPasswordScreen()),
       GoRoute(path: Routes.onboardingUsername, builder: (_, _) => const UsernameScreen()),
       GoRoute(path: Routes.onboardingImport, builder: (_, _) => const ImportPlaceholderScreen()),
+      GoRoute(path: Routes.settings, builder: (_, _) => const SettingsScreen()),
+      GoRoute(path: Routes.editProfile, builder: (_, _) => const EditProfileScreen()),
       GoRoute(path: Routes.about, builder: (_, _) => const AboutScreen()),
+
+      // Perfil de outra pessoa, estatísticas e lista: por cima da aba atual,
+      // como o detalhe do título (o meu perfil é a aba `/profile`).
+      GoRoute(
+        path: '/profile/:username',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => ProfileScreen(username: state.pathParameters['username']),
+      ),
+      GoRoute(
+        path: '/profile/:username/stats',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => StatsScreen(username: state.pathParameters['username']!),
+      ),
+      GoRoute(
+        path: '/list/:id',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => ListScreen(listId: state.pathParameters['id']!),
+      ),
 
       // Detalhe do título abre por cima da aba atual: sub-rota de cada ramo
       // seria o ideal, mas uma rota raiz com o navigator raiz mantém o botão
@@ -84,7 +108,7 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(routes: [GoRoute(path: Routes.search, builder: (_, _) => const SearchScreen())]),
           StatefulShellBranch(routes: [GoRoute(path: Routes.feed, builder: (_, _) => const FeedScreen())]),
           StatefulShellBranch(routes: [GoRoute(path: Routes.subscribe, builder: (_, _) => const SubscribeScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: Routes.profile, builder: (_, _) => const ProfileTabScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen())]),
         ],
       ),
     ],

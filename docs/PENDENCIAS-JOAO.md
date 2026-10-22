@@ -98,6 +98,34 @@ O app, as 5 Edge Functions, os testes e o APK estão prontos, mas **nada foi ver
 - [ ] Login por e-mail (com e sem "Confirm email"), "Esqueci a senha" abre o app pelo deep link e troca a senha, Google entra e cria o perfil com nome e foto, "Apagar conta" some do `auth.users` e devolve ao login.
 - [ ] No celular, com os apps instalados: o botão abre o app oficial (não o navegador) para Netflix, HBO Max (`play.hbomax.com`), Prime Video, Globoplay (busca), Crunchyroll, Disney+ (pelo pacote). Os 8 links de busca da fase 01 continuam pendentes do seu teste.
 
+## Fase 04 · Perfil e diário
+
+Folha Registrar, listas, perfil com abas e contadores, estatísticas e configurações estão prontos e testados (74 testes Dart, `npm run db:test` 3/3), mas, como na fase 03, **nada rodou contra um projeto Supabase real**. O `plateia-fase04.apk` na Área de Trabalho roda com dados de amostra: você já entra com um diário cheio (One Piece assistindo, Oppenheimer 2×, Duna 2…), duas listas e pode abrir `@foxer` (público) e `@camila` (privado) pela rota `/profile/<username>`.
+
+### O que você roda (depois dos passos da fase 03)
+
+- [ ] **1. Migração 0003**: `npm run db:test` (3/3 verde) e depois `supabase db push`. A `0003_diary_stats.sql` cria a view `entry_stats_rows` e um índice; não mexe em tabela. `supabase migration list` deve mostrar 0001, 0002 e 0003 remotas.
+- [ ] **2. Bucket de avatar**: dashboard → Storage → `avatars` existe, público, 2 MB, só imagem (veio da 0002). Se a 0002 tiver sido aplicada pelo SQL Editor, confira as 4 policies em `storage.objects`.
+- [ ] **3. Fluxo real no emulador/celular** (`flutter run --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=…`): abrir "One Piece" → **Registrar** → **Assisti** (tem que ficar marcado na hora) → nota 4,5 → review com "contém spoiler" → Salvar → aba Perfil: pôster na grade, contador "Assistidos 1", aba Reviews com a review borrada → ícone de estatísticas → horas aparecem. Depois Configurações → Editar perfil → trocar a foto (galeria) → a foto aparece no cartão. Me mande "verifica a fase 04" e eu confiro pelos logs e pelo dashboard.
+
+### Decisões de spec que merecem o seu olhar (▶ também no `CLAUDE.md`, Decisões de 22/10)
+
+- ▶ **Nota sem estado marca "Assisti"** (como no Letterboxd). Se preferir que a nota exija escolher o estado antes, é uma linha na folha.
+- ▶ **Série em "Assisti" sem progresso conta todos os episódios nas horas**; "Assistindo" conta até a T/E informada. Alternativa: não contar nada até a pessoa informar (horas menores, porém "certas").
+- ▶ **Review, spoiler e progresso gravam ao tocar em Salvar ou ao fechar a folha**; estado e nota gravam na hora. Se quiser tudo na hora, dá para ligar o salvamento com debounce na review.
+- ▶ **Estatísticas no cliente** (view `entry_stats_rows`), não por RPC. Com 2 mil entradas são ~4 chamadas de 500 linhas; se no projeto real a tela demorar mais de 1 s, eu crio a RPC `profile_stats(uuid)` numa migração 0004.
+
+### O que eu verifico quando o projeto existir
+
+- [ ] `entry_stats_rows` responde para `authenticated` e devolve vazio para perfil privado de quem não sigo (mesma regra do teste SQL, agora via PostgREST).
+- [ ] Upsert de `entries` com `on_conflict=user_id,title_id` devolve `title:titles(*)` embutido (o app usa o pôster que volta).
+- [ ] `can_view_content` e `profile_counts` chamáveis por RPC com o JWT do app (grants padrão); contadores aparecem no perfil privado.
+- [ ] Upload do avatar: `uploadBinary` com `upsert: true` na pasta `<uid>/`; `getPublicUrl` + `?v=` fura o cache do `cached_network_image`; `profiles.avatar_url` atualizado.
+- [ ] Reordenar lista: um `upsert` em lote em `list_items` com `on_conflict=list_id,title_id` passa pela policy de update (dono).
+- [ ] `lists!inner(user_id)` com `eq('lists.user_id', uid)` filtra só as minhas listas em `myListIdsContaining`.
+- [ ] Trigger `entries_log_activity`: registrar pela folha cria `activities` (`watched`/`rated`/`reviewed`); "quero ver" não cria; desmarcar apaga em cascata.
+- [ ] Perfil privado ligado em Configurações: o trigger `profiles_before_update` continua aceitando pendentes ao voltar para público (fase 06 testa de verdade).
+
 ## Para as próximas fases (já dá para adiantar)
 
 - [x] ~~**Supabase**: criar projeto~~ → movido para a fase 02, acima.

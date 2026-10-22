@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/errors/app_exception.dart';
 import '../../../core/supabase/supabase_providers.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../data/profile_repository.dart';
@@ -30,6 +33,32 @@ class MyProfile extends _$MyProfile {
 
   Future<void> completeOnboarding() async {
     final updated = await ref.read(profileRepositoryProvider).completeOnboarding();
+    state = AsyncData(updated);
+  }
+
+  /// Nome e bio (tela Editar perfil). Lança para a tela mostrar o erro no formulário.
+  Future<void> updateCard(ProfileCardDraft draft) async {
+    final updated = await ref.read(profileRepositoryProvider).updateCard(draft);
+    state = AsyncData(updated);
+  }
+
+  /// Perfil privado: otimista com desfazer (SPEC §5.3). Null = deu certo.
+  Future<String?> setPrivate(bool isPrivate) async {
+    final previous = state;
+    final current = previous.value;
+    if (current == null) return 'Sessão expirada. Entre de novo.';
+    state = AsyncData(current.copyWith(isPrivate: isPrivate));
+    try {
+      state = AsyncData(await ref.read(profileRepositoryProvider).setPrivate(isPrivate));
+      return null;
+    } catch (e) {
+      state = previous;
+      return describeError(e);
+    }
+  }
+
+  Future<void> uploadAvatar(Uint8List bytes, {String contentType = 'image/jpeg'}) async {
+    final updated = await ref.read(profileRepositoryProvider).uploadAvatar(bytes, contentType: contentType);
     state = AsyncData(updated);
   }
 }

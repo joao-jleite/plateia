@@ -8,10 +8,11 @@ import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/poster_image.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_providers.dart';
+import 'register_bar.dart';
 import 'where_to_watch_section.dart';
 
-/// Detalhe do título (SPEC §J2.2): pôster, sinopse, elenco, temporadas e a
-/// seção Onde assistir. O botão Registrar (diário) chega na fase 04.
+/// Detalhe do título (SPEC §J2.2): pôster, sinopse, elenco, temporadas, o
+/// botão Registrar (diário, SPEC §J3) e a seção Onde assistir.
 class TitleScreen extends ConsumerWidget {
   const TitleScreen({super.key, required this.type, required this.tmdbId});
 
@@ -95,6 +96,8 @@ class _TitleBody extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        RegisterBar(detail: detail),
         const SizedBox(height: 20),
         WhereToWatchSection(detail: detail),
         if (t.overview != null && t.overview!.isNotEmpty) ...[

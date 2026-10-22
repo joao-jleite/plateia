@@ -73,6 +73,12 @@ class FixtureCatalogRepository implements CatalogRepository {
     return fixtureHomeSections();
   }
 
+  @override
+  Future<List<StreamingProvider>> providers() async {
+    await Future<void>.delayed(latency);
+    return FixtureProviders.all;
+  }
+
   /// Mesma linha de log que as Edge Functions escrevem (ARQUITETURA §15).
   void _log(String fn, {required int upstreamCalls, String extra = ''}) {
     debugPrint('[fixtures] {fn: $fn, user: fixture, ms: ${latency.inMilliseconds}, upstream_calls: $upstreamCalls} $extra');

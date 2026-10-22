@@ -259,7 +259,7 @@ final class SearchResultsProvider
   }
 }
 
-String _$searchResultsHash() => r'deb23c8162b7c82c67f7ca4e784b8b71c67890dc';
+String _$searchResultsHash() => r'c8473c0ebedee9b9044e8489d93e7f8971a02284';
 
 /// Resultados da busca com paginação acumulada ("Mais resultados").
 

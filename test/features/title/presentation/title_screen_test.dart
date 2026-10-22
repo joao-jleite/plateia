@@ -15,7 +15,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('One Piece'), findsWidgets);
-    expect(find.textContaining('Monkey D. Luffy'), findsOneWidget, reason: 'sinopse');
     expect(find.text('Onde assistir'), findsOneWidget);
     expect(find.text('Onde assistir: dados da JustWatch via TMDB'), findsOneWidget, reason: 'atribuição');
 
@@ -32,6 +31,10 @@ void main() {
     expect(launcher.opened, hasLength(1));
     expect(launcher.opened.single.kind, WatchActionKind.deepLink);
     expect(launcher.opened.single.uri.toString(), 'https://www.netflix.com/title/80107103');
+
+    // A sinopse fica abaixo da dobra (o botão Registrar da fase 04 entrou antes dela).
+    await tester.dragUntilVisible(find.textContaining('Monkey D. Luffy'), find.byType(ListView).first, const Offset(0, -200));
+    expect(find.textContaining('Monkey D. Luffy'), findsOneWidget, reason: 'sinopse');
   });
 
   testWidgets('Disney+ sem link vira "Abrir o Disney+" pelo pacote', (tester) async {

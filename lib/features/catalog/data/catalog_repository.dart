@@ -17,6 +17,10 @@ abstract class CatalogRepository {
   });
 
   Future<HomeSections> homeSections();
+
+  /// Tabela `providers` (leitura direta; só a Edge Function escreve). Usada
+  /// pelas estatísticas do perfil para dar nome e logo a cada streaming.
+  Future<List<StreamingProvider>> providers();
 }
 
 class SupabaseCatalogRepository implements CatalogRepository {
@@ -44,5 +48,11 @@ class SupabaseCatalogRepository implements CatalogRepository {
   Future<HomeSections> homeSections() async {
     final json = await invokeFunction(_client, 'home-sections');
     return HomeSections.fromJson(json);
+  }
+
+  @override
+  Future<List<StreamingProvider>> providers() async {
+    final rows = await _client.from('providers').select().order('display_order', nullsFirst: false).order('name');
+    return rows.map(StreamingProvider.fromJson).toList();
   }
 }

@@ -129,7 +129,8 @@ Rotas: as da tabela em `docs/SPEC.md` §4. Abas: Início, Buscar, Feed, Assinar,
 - **Edge Functions:** `supabase.functions.invoke('nome', body: {...})` manda o JWT automaticamente. Resposta de erro sempre `{ "error": { "code": "...", "message": "pt-BR" } }` (§9).
 - **Storage:** upload do avatar em `avatars/<uid>/avatar.jpg` (upsert); a URL pública vai para `profiles.avatar_url` com `?v=<timestamp>` para furar cache.
 - **Sem offline-first:** sem rede, telas mostram estado de erro com "tentar de novo". Cache de imagens é o único cache local.
-- **Paginação:** `range()` de 30 em 30 em feed, diário e listas; cursor por `created_at` quando a lista cresce (fase 06).
+- **Paginação:** `range()` de 30 em 30 em feed e listas (diário do perfil: 60, com "Mostrar mais"); cursor por `created_at` quando a lista cresce (fase 06).
+- **Estatísticas do perfil (fase 04):** view `entry_stats_rows` (migração 0003, `security_invoker`) entrega uma linha magra por entrada; o app pagina de 500 em 500 e agrega em `computeProfileStats` (função pura). RPC `profile_stats` só se o p95 real passar de 1 s.
 
 ## 9. Edge Functions (Deno) · contratos
 
@@ -243,7 +244,9 @@ Limites do stub: não há GoTrue, PostgREST nem API de Storage; o que se testa �
 - `test/features/title/domain/`: `resolveWatchAction` (texto e destino do botão), `groupAvailability` (um cartão por streaming, ordem, variantes), HBO Max. `test/features/onboarding/domain/`: regra do @. `test/core/router/`: `gateFrom` + `computeRedirect`.
 - `test/features/import_netflix/domain/` (fase 05): parser (padrões de título, datas D/M vs M/D, BOM, aspas), agrupador, idempotência.
 - `test/features/subscribe/domain/` (fase 07): recomendador com os casos fixos (lista vazia, empate, título em vários, em nenhum, preço desatualizado).
-- Widget: `test/helpers/pump_app.dart` sobe a tela com `fixtureOverrides()` (repositórios de amostra sem latência), imagens de rede desligadas (`imagesEnabledProvider`), launcher falso (`streamingLauncherProvider`) e `retry: null` no `ProviderScope` (erro proposital não pode deixar timer pendente). Telas cobertas na fase 03: login, username + "Agora não", Início (dado/erro/retry), Busca (debounce, vazio, acento), Detalhe (ordem, botão por caso, vazio, erro, cache do repositório).
+- `test/features/profile/domain/` (fase 04): `computeProfileStats`, `minutesFor`, `hoursLabel` (horas por filme/série, "assisti" sem progresso, por streaming/gênero/década, empates, sem duração). `test/features/diary/domain/`: `isValidRating`, `episodesWatchedFor`, `EntryDraft.normalized`, `optimisticEntry`, `Entry.fromJson` com título embutido.
+- Widget: `test/helpers/pump_app.dart` sobe a tela com `fixtureOverrides()` (repositórios de amostra sem latência), imagens de rede desligadas (`imagesEnabledProvider`), launcher falso (`streamingLauncherProvider`) e `retry: null` no `ProviderScope` (erro proposital não pode deixar timer pendente). Telas cobertas na fase 03: login, username + "Agora não", Início (dado/erro/retry), Busca (debounce, vazio, acento), Detalhe (ordem, botão por caso, vazio, erro, cache do repositório). Fase 04 (`diary: FixtureDiaryStore(seed: false)` e `failWrites: true` no helper): folha Registrar (2 toques, desmarcar, nota implica Assisti, review com spoiler borrada no detalhe, T/E → episódios, servidor recusa → desfaz com SnackBar, reassistir), perfil (cartão, contadores, grade com nota/progresso/reassistido, abas, lista ranqueada, reviews borradas, perfil público × privado × inexistente, estatísticas, diário vazio).
+- Fase 04, banco: `tools/db/tests/0002_diary.sql` (posse do diário, privacidade de diário/listas/view, lista privada nem para seguidor, nota 4,3 / nota e review em "quero ver" / limites, reassistir, `entry_stats_rows` com 2 mil entradas < 1 s).
 
 ## 14. Migrações e ambientes
 

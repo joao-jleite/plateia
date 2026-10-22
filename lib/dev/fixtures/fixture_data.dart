@@ -24,7 +24,7 @@ abstract final class FixtureProviders {
     searchUrlTemplate: null, isFeatured: true, displayOrder: 3,
   );
   static const max = StreamingProvider(
-    id: 1899, slug: 'max', name: 'HBO Max', logoPath: '/97yvRBw1GzX7fXprcF80er19ot.jpg',
+    id: 1899, slug: 'max', name: 'HBO Max', logoPath: '/jbe4gVSfRlbPTdESXhEKpornsfu.jpg',
     androidPackage: 'com.wbd.stream', webDomain: 'play.hbomax.com',
     searchUrlTemplate: 'https://play.hbomax.com/search?q={q}', isFeatured: true, displayOrder: 4,
   );

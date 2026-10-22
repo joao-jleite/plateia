@@ -1,4 +1,4 @@
-# Como rodar · Plateia (fase 03)
+# Como rodar · Plateia (fases 03–04)
 
 Tudo no PowerShell, na raiz do repo. Flutter 3.44.8, Node ≥ 20, Deno 2 (`npm i -g deno`), Supabase CLI.
 
@@ -19,6 +19,8 @@ flutter run -d emulator-5554 --dart-define=BACKEND=fixtures
 
 10 títulos em `lib/dev/fixtures/fixture_data.dart` (busque "One Piece", "Oppenheimer", "Arcanjo", "Frieren"…). Login aceita qualquer e-mail com senha de 6+ caracteres ou o botão do Google. O log mostra as mesmas linhas das Edge Functions (`upstream_calls: 0` na segunda abertura). `BACKEND=fixtures` é recusado em build release.
 
+Fase 04: quem loga já tem um diário de amostra (`lib/dev/fixtures/fixture_diary.dart`: 4 assistidos, 1 assistindo, 2 quero ver, 2 listas) e existem dois perfis de terceiros: `@foxer` (público) e `@camila` (privado). Até a busca de pessoas (fase 06) eles só são alcançáveis por código: nos testes de widget, `pumpScreen(tester, const ProfileScreen(username: 'camila'))`; no emulador, `GoRouter.of(context).push('/profile/camila')` de qualquer tela. Para simular o servidor recusando (interface otimista desfazendo): `fixtureOverrides(failWrites: true)`.
+
 ### Com o projeto Supabase
 
 ```powershell
@@ -31,7 +33,7 @@ Sem `SUPABASE_URL`/`SUPABASE_ANON_KEY` o app abre numa tela "configuração ause
 
 ```powershell
 flutter build apk --release --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=… --dart-define=GOOGLE_WEB_CLIENT_ID=…   # produto
-flutter build apk --profile --dart-define=BACKEND=fixtures                                                                     # demonstração (é o plateia-fase03.apk)
+flutter build apk --profile --dart-define=BACKEND=fixtures                                                                     # demonstração (é o plateia-fase04.apk)
 ```
 
 Saída em `build/app/outputs/flutter-apk/`. O mais novo vai para a Área de Trabalho; os antigos para `dist/` (fora do git).
@@ -39,7 +41,7 @@ Saída em `build/app/outputs/flutter-apk/`. O mais novo vai para a Área de Trab
 ## Banco
 
 ```powershell
-npm run db:test              # Postgres 17 local: migrações + checagem de RLS + tools/db/tests/*.sql (~9 s)
+npm run db:test              # Postgres 17 local: migrações 0001–0003 + checagem de RLS + tools/db/tests/*.sql (3 arquivos, ~10 s)
 npm run db:test:keep         # idem, deixa o banco de pé em localhost:54329 até apertar Enter
 supabase db push             # só depois do db:test verde e do `supabase link`
 ```

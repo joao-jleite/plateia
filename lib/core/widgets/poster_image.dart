@@ -42,7 +42,8 @@ class PosterImage extends ConsumerWidget {
         height: height,
         fit: fit,
         placeholder: (_, _) => const _Shimmer(),
-        errorWidget: (_, _, _) => _Fallback(label: fallbackLabel, icon: fallbackIcon),
+        errorWidget: (_, _, _) =>
+            _Fallback(label: fallbackLabel, icon: fallbackIcon),
       );
     }
     return ClipRRect(
@@ -63,24 +64,39 @@ class _Fallback extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return ColoredBox(
       color: scheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: scheme.outline, size: 22),
-            if (label != null && label!.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                label!,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelSmall,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Caixa pequena (logo 28 px, avatar mini): só o ícone, proporcional.
+          if (constraints.maxHeight < 48 || constraints.maxWidth < 48) {
+            final side = constraints.biggest.shortestSide;
+            return Center(
+              child: Icon(
+                icon,
+                color: scheme.outline,
+                size: (side * 0.6).clamp(8, 22),
               ),
-            ],
-          ],
-        ),
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.all(6),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: scheme.outline, size: 22),
+                if (label != null && label!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    label!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -23,6 +23,9 @@ class _FailingCatalog implements CatalogRepository {
   @override
   Future<TitleDetail> title({required MediaType type, required int tmdbId, bool force = false}) =>
       throw UnimplementedError();
+
+  @override
+  Future<List<StreamingProvider>> providers() => throw UnimplementedError();
 }
 
 void main() {

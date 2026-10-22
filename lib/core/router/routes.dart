@@ -17,9 +17,17 @@ abstract final class Routes {
   static const feed = '/feed';
   static const subscribe = '/subscribe';
   static const profile = '/profile';
+
+  static const settings = '/settings';
+  static const editProfile = '/settings/profile';
   static const about = '/settings/about';
 
   static String title(MediaType type, int tmdbId) => '/title/${type.path}/$tmdbId';
+
+  /// Perfil de alguém pelo @ (o meu é a aba `/profile`).
+  static String profileOf(String username) => '/profile/$username';
+  static String stats(String username) => '/profile/$username/stats';
+  static String list(String id) => '/list/$id';
 
   static bool isAuth(String location) =>
       location.startsWith(login) || location.startsWith(signup) || location.startsWith(reset);

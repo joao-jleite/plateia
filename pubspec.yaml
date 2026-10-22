@@ -4,7 +4,7 @@ description: "Plateia (codinome): o que você assiste em todos os streamings, on
 publish_to: "none"
 
 # versionCode = o número depois do "+". A fase 08 passa a controlar isso no release.
-version: 0.3.0+3
+version: 0.4.0+4
 
 environment:
   sdk: ^3.12.2
@@ -36,6 +36,7 @@ dependencies:
   # Datas em pt-BR
   intl: ^0.20.2
   http: ^1.6.0
+  image_picker: ^1.2.4
 
 dev_dependencies:
   flutter_test:

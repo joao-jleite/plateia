@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:watchlog/core/widgets/poster_image.dart';
 import 'package:watchlog/dev/fixtures/fixture_auth_repository.dart';
 import 'package:watchlog/dev/fixtures/fixture_catalog_repository.dart';
+import 'package:watchlog/dev/fixtures/fixture_diary.dart';
 import 'package:watchlog/dev/fixtures/fixture_overrides.dart';
 import 'package:watchlog/features/auth/domain/auth_user.dart';
 import 'package:watchlog/features/catalog/data/catalog_repository.dart';
@@ -33,6 +34,8 @@ Future<FakeLauncher> pumpScreen(
   Map<String, Widget Function(GoRouterState state)> routes = const {},
   AuthUser? user = testUser,
   CatalogRepository? catalog,
+  FixtureDiaryStore? diary,
+  bool failWrites = false,
 }) async {
   final launcher = FakeLauncher();
   final router = GoRouter(
@@ -50,6 +53,8 @@ Future<FakeLauncher> pumpScreen(
         ...fixtureOverrides(
           auth: FixtureAuthRepository(initialUser: user, latency: Duration.zero),
           catalog: catalog ?? FixtureCatalogRepository(latency: Duration.zero),
+          diary: diary,
+          failWrites: failWrites,
           latency: Duration.zero,
         ),
         imagesEnabledProvider.overrideWithValue(false),
