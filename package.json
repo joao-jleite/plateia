@@ -1,0 +1,10 @@
+{
+  "name": "plateia-workspace",
+  "private": true,
+  "description": "Atalhos do repo. O app Flutter fica na raiz (fase 03); as ferramentas de banco em tools/db.",
+  "scripts": {
+    "db:install": "npm --prefix tools/db install --no-audit --no-fund --loglevel=error",
+    "db:test": "npm run db:install && node tools/db/db-test.mjs",
+    "db:test:keep": "npm run db:install && node tools/db/db-test.mjs --keep"
+  }
+}

@@ -22,16 +22,18 @@ App Android em Flutter que junta num lugar só o que a pessoa assiste em todos o
 
 ## Stack
 - Flutter (Android primeiro), Dart com null safety.
-- Supabase: Auth (e-mail + Google), Postgres com RLS em **toda** tabela, Edge Functions (Deno) como proxy e cache das APIs externas, Storage para avatar.
-- Gerência de estado, navegação e estrutura de pastas: decididas na fase 02 e registradas em "Decisões".
+- Supabase: Auth (e-mail + Google), Postgres 17 com RLS em **toda** tabela, Edge Functions (Deno) como proxy e cache das APIs externas, Storage para avatar.
+- Riverpod 3 (codegen) para estado, go_router para navegação, pastas feature-first, modelos `freezed`. Pacote Android `io.github.joaojleite.watchlog` (imutável; "Plateia" é só o rótulo). Tudo em `docs/ARQUITETURA.md`; produto e regras em `docs/SPEC.md`.
+- Máquina sem Docker/Deno: banco validado em Postgres local com `npm run db:test` (`tools/db/`); Edge Functions sobem com `supabase functions deploy --use-api`.
 
 ## Convenções
 - Interface em PT-BR; código, tabelas e colunas em inglês.
 - Comentar os trechos não óbvios.
 - Toda chamada externa trata erro e tem estado vazio/erro/carregando na interface.
 - Cache de disponibilidade no Postgres, com `fetched_at`; respeitar a cota da API.
-- Migrações SQL em `supabase/migrations/`, numeradas. Nunca editar uma migração já aplicada: criar outra.
-- Testes unitários para lógica (matching do CSV, recomendação) e testes de RLS para cada tabela com dado de usuário.
+- Migrações SQL em `supabase/migrations/`, numeradas. Nunca editar uma migração já aplicada: criar outra. "Enums" são `text + check`.
+- `npm run db:test` precisa passar antes de qualquer `supabase db push`: aplica as migrações num Postgres 17 local, confere RLS/policy/grants e roda `tools/db/tests/*.sql`.
+- Testes unitários para lógica (matching do CSV, recomendação) e testes de RLS em SQL (`tools/db/tests/`) para cada tabela com dado de usuário.
 - `flutter analyze` limpo ao fim de cada fase.
 - Ao fim de cada fase com app rodando, deixar o APK mais novo na Área de Trabalho (`C:\Users\joao-\Desktop`). Os antigos vão para `dist/`.
 - Git local, um commit por entrega. Push só com ordem do João.
@@ -43,7 +45,7 @@ Criar contas e chaves (TMDB, API de disponibilidade, Supabase, Google Cloud para
 | Fase | Prompt | Status |
 |---|---|---|
 | 01 Validar APIs | `prompts/01-validar-apis.md` | concluída com pendências (chaves e CSV: `docs/PENDENCIAS-JOAO.md`) |
-| 02 Spec e arquitetura | `prompts/02-spec-e-arquitetura.md` | pendente |
+| 02 Spec e arquitetura | `prompts/02-spec-e-arquitetura.md` | concluída (spec aprovada por procuração; projeto Supabase e confirmação do João: `docs/PENDENCIAS-JOAO.md`) |
 | 03 Base e catálogo | `prompts/03-base-e-catalogo.md` | pendente |
 | 04 Perfil e diário | `prompts/04-perfil-e-diario.md` | pendente |
 | 05 Importar Netflix | `prompts/05-importar-netflix.md` | pendente |
@@ -64,3 +66,22 @@ Ao terminar uma fase: marcar o status aqui, registrar as decisões abaixo e list
 - 2026-10-22 · Parser do CSV da Netflix por padrões `: Temporada N:`, `: Parte N:`, `: Minissérie:` e arco nomeado; data ambígua D/M vs M/D decidida pelo conjunto (campo > 12) · formato documentado publicamente, a confirmar com o CSV real (script `research/05_netflix_csv.py`).
 - 2026-10-22 · Scripts de pesquisa com `BudgetGuard` por API (TMDB 100, Watchmode 120, MOTN 60) e sem retry em 4xx · regra de nunca gastar mais de 20% da cota mensal.
 - 2026-10-22 · Fase 01 fechada sem as chaves (não existiam em `research/.env`) · tudo o que não depende delas foi testado de verdade; os números por título entram quando o João rodar `research/run_all.ps1`. O que só ele faz está em `docs/PENDENCIAS-JOAO.md`.
+- 2026-10-22 · `docs/SPEC.md` aprovada por procuração (liberdade total dada pelo João em 22/10) · ele não acompanha o chat; os pontos que pedem a leitura dele estão marcados com ▶ na spec e em `docs/PENDENCIAS-JOAO.md`.
+- 2026-10-22 · Pacote Android `io.github.joaojleite.watchlog`, nome Dart `watchlog`, rótulo "Plateia" · o id é imutável na Play, então não leva o codinome; `io.github.<usuário>` é o padrão para quem não tem domínio.
+- 2026-10-22 · Estado com Riverpod 3 + `riverpod_generator` · DI sem BuildContext e checada em compilação, `AsyncValue` dá os três estados exigidos pela convenção, testável sem widget. Rejeitados Bloc (cerimônia), Provider (sem async), GetX (estado global implícito).
+- 2026-10-22 · Navegação com go_router · `StatefulShellRoute` para as 5 abas, `redirect` central para login/onboarding, deep link por caminho (`/u/:username`, callback do OAuth). Rejeitado auto_route.
+- 2026-10-22 · Pastas feature-first (`lib/features/<x>/{data,domain,presentation}` + `lib/core`), modelos `freezed` · `domain/` sem Flutter nem Supabase é o que se testa unitariamente.
+- 2026-10-22 · Postgres local sem Docker: `embedded-postgres` (npm, PG 17.10) + stub do Supabase (`tools/db/supabase_stub.sql`) · a máquina não tem Docker, psql nem Deno; mesma major do projeto (`config.toml` 17); `npm run db:test` aplica as migrações como o `db push` (uma transação por arquivo), confere RLS e roda os testes SQL em ~7 s.
+- 2026-10-22 · "Enums" como `text + check` · evoluem com `alter constraint` dentro de transação; enum do Postgres não remove valor.
+- 2026-10-22 · Diário com uma linha por usuário×título (`entries`, unique); reassistir = `watch_count` · importação idempotente por upsert e estatísticas simples; diário por episódio fica para depois.
+- 2026-10-22 · Perfil privado esconde o conteúdo, não o cartão; seguir privado vira pedido (trigger decide); virar público aceita pendentes · tem que dar para achar e pedir; Letterboxd e Instagram fazem igual.
+- 2026-10-22 · Bloqueio simétrico no efeito via `is_blocked_between()` em toda policy social; bloqueado não lê `blocks`; lista de bloqueados por RPC · regra no banco, não na tela; o bloqueado não descobre.
+- 2026-10-22 · Atividades e notificações nascem só por trigger (security definer); clientes sem `insert` · impossível forjar; o trigger escolhe review > nota > status e reaproveita o evento da última hora (rajada).
+- 2026-10-22 · Feed por fan-out na leitura (view `feed` com `security_invoker`) · basta até ~10 mil usuários ativos ou p95 > 200 ms; depois `feed_items` por trigger (ARQUITETURA §11).
+- 2026-10-22 · Curtidas e comentários pertencem à atividade; dono da atividade apaga comentário alheio · a atividade é a unidade social do feed.
+- 2026-10-22 · `anon` sem privilégio; cache e referência somente leitura para `authenticated`; `api_usage` sem policy · app só logado; grants são a segunda camada além da RLS.
+- 2026-10-22 · Cache: título 30 d, "onde está" 7 d, link 7 d, Início 6 h; teto da Streaming Availability 900/mês via `consume_api_quota()` · cota grátis é 1.000; estourou = plano B (busca) até virar o mês.
+- 2026-10-22 · Edge Functions: `catalog-search`, `catalog-title`, `home-sections`, `import-match`, `providers-sync`, `account-delete`; deploy com `--use-api` · sem Docker/Deno local; `account-delete` porque a Play exige apagar conta.
+- 2026-10-22 · Bucket `avatars` público (pasta = uid) em migração separada (`0002`) · isola um possível erro de permissão em `storage.objects` no `db push`.
+- 2026-10-22 · Preços dos streamings seedados como estimativa (`provider_prices.is_estimate`) · a fase 07 precisa de dado; o João confere pelo dashboard e a tela mostra data e "estimativa".
+- 2026-10-22 · Ids de providers do TMDB no seed (8, 119, 337, 1899, 307, 350, 531, 283) sem conferência com a chave · `providers-sync` (fase 03) confirma nomes e logos; id errado se corrige por nova migração.

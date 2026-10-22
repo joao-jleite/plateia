@@ -20,3 +20,8 @@ dist/
 *.keystore
 supabase/.temp/
 .env
+
+# Ferramentas de banco (fase 02): Postgres local do npm run db:test
+node_modules/
+tools/db/.pgdata/
+tools/db/.pgdata-*/

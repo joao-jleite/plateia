@@ -1,0 +1,14 @@
+{
+  "name": "plateia-db-tools",
+  "private": true,
+  "description": "Postgres local sem Docker para aplicar as migrações do supabase/migrations e rodar os testes de RLS (ver docs/ARQUITETURA.md).",
+  "type": "module",
+  "scripts": {
+    "db:test": "node db-test.mjs",
+    "db:test:keep": "node db-test.mjs --keep"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "embedded-postgres": "17.10.0-beta.17"
+  }
+}

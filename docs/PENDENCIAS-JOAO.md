@@ -29,9 +29,24 @@ Tudo o que só você pode fazer (contas, chaves, celular, dinheiro). Cada fase a
   - Disney+ (não tem busca): `https://www.disneyplus.com/pt-br` só para ver se abre o app.
   Anote quais abriram o **app** e quais abriram o **navegador**; isso define o texto do botão na fase 03.
 
+## Fase 02 · Spec e arquitetura
+
+- [ ] **Ler e confirmar `docs/SPEC.md`** (10 min). Foi aprovada por procuração em 22/10 porque você deu liberdade total; se discordar de algo, avise **antes da fase 04** (diário) e **da 06** (social), porque mudar depois é migração. Os pontos marcados com ▶ na spec:
+  1. Pacote Android `io.github.joaojleite.watchlog` (imutável na Play; "Plateia" fica só como rótulo visível).
+  2. Diário com **uma linha por título**: reassistir soma `watch_count`; não há diário por episódio no MVP.
+  3. Perfil privado esconde o **conteúdo** (diário, listas, atividades), não o **cartão** (username, foto, bio, contadores).
+  4. O que entra no feed: assistiu, nota, review, começou a assistir, criou lista pública, importou histórico. "Quero ver" não entra.
+  5. Preços dos streamings em `provider_prices` são **estimativas minhas**; a tela mostra "estimativa" até você corrigir (item abaixo).
+- [ ] **Projeto Supabase** (grátis, ~5 min): https://supabase.com/dashboard → New project → região **`sa-east-1` (São Paulo)**, senha forte do banco (guarde fora do git). Depois:
+  1. Project Settings → API: copiar **Project URL** e **anon key** para um arquivo `.env` na raiz do repo (já está no `.gitignore`) como `SUPABASE_URL=` e `SUPABASE_ANON_KEY=`. A `service_role` **não** vai para o app; só para `tools/db/.env` se a fase 06 pedir (seed de contas de teste).
+  2. No PowerShell, na pasta do projeto: `supabase login` (abre o navegador) e `supabase link --project-ref <ref do projeto>`. Com isso a fase 03 aplica o banco com `supabase db push`.
+  3. Authentication → URL Configuration → Redirect URLs: adicionar `io.github.joaojleite.watchlog://login-callback`.
+- [ ] **Conferir os preços** quando quiser (dashboard → Table Editor → `provider_prices`): corrigir `price_cents` e marcar `is_estimate = false`. Fontes: página de planos de cada streaming. Fase 07 usa.
+- [ ] **Opcional:** instalar o Deno (`winget install DenoLand.Deno`) só para eu conseguir checar o código das Edge Functions antes do deploy. Sem ele tudo funciona; o deploy usa `--use-api`.
+
 ## Para as próximas fases (já dá para adiantar)
 
-- [ ] **Supabase**: criar projeto (região `sa-east-1`, São Paulo) em https://supabase.com/dashboard; anotar URL e `anon key` (vão no app) e guardar a `service_role` (nunca no app). Fase 03.
+- [x] ~~**Supabase**: criar projeto~~ → movido para a fase 02, acima.
 - [ ] **Google Cloud**: projeto + credencial OAuth "Android" (SHA-1 da keystore de debug e, depois, da release) para o login Google do Supabase Auth. Fase 03/04.
 - [ ] **Conta Google Play Console** (US$ 25 uma vez) e **keystore de release** (guardar senha fora do git). Fase 08.
 - [ ] **Antes de cobrar qualquer coisa ou colocar anúncio**: pedir licença comercial do TMDB (e-mail para `sales@themoviedb.org`, assunto "Commercial API Use", informando o país) e assinar o Starter da Streaming Availability (US$ 49/mês). Fase 08.
