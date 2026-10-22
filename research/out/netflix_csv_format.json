@@ -1,0 +1,34 @@
+{
+  "status": "a confirmar com o CSV real",
+  "download": "Conta > Perfis > Atividade de visualização > 'Baixar tudo' (CSV por perfil). Exportação completa em netflix.com/account/getmyinfo (até 30 dias; zip com ViewingActivity.csv).",
+  "file_name": "NetflixViewingHistory.csv",
+  "encoding": "UTF-8 (frequentemente com BOM)",
+  "delimiter": ",",
+  "header": [
+    "Title",
+    "Date"
+  ],
+  "date_format": "depende do locale da conta: contas BR costumam vir D/M/YY (ex.: 15/07/24); contas US vêm M/D/YY. Tratar como ambíguo e inferir pelo conjunto (algum primeiro campo >12 decide dia-primeiro).",
+  "one_row_per": "episódio ou filme assistido (uma linha por sessão; repetições aparecem de novo)",
+  "title_patterns_pt_br": [
+    "Série por número: 'Stranger Things: Temporada 1: Capítulo Um: O Desaparecimento de Will Byers'",
+    "Série por parte: 'La Casa de Papel: Parte 2: Episódio 1'",
+    "Minissérie: 'Título: Minissérie: Episódio 1'",
+    "Anime com arco nomeado: 'One Piece: East Blue: Eu sou Luffy! O homem que vai ser o Rei dos Piratas!'",
+    "Filme: título puro, sem dois-pontos de estrutura: 'Oppenheimer' (títulos com ':' no nome exigem heurística)",
+    "Trailers/extras podem aparecer como título normal; este CSV não tem coluna de tipo (só o ViewingActivity.csv da exportação completa)."
+  ],
+  "full_export_columns": [
+    "Profile Name",
+    "Start Time",
+    "Duration",
+    "Attributes",
+    "Title",
+    "Supplemental Video Type",
+    "Device Type",
+    "Bookmark",
+    "Latest Bookmark",
+    "Country"
+  ],
+  "matching_strategy": "extrair o nome da série (texto antes do primeiro ': Temporada|Parte|Minissérie|<arco>'), deduplicar por série, buscar no TMDB em pt-BR; filmes buscam o título inteiro com fallback sem subtítulo."
+}

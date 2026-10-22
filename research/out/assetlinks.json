@@ -1,0 +1,349 @@
+{
+  "checked_at": "2026-10-22",
+  "services_with_applink": 8,
+  "services_total": 8,
+  "services": {
+    "netflix": {
+      "packages": [
+        "com.netflix.NGP.Pandora",
+        "com.netflix.bheem",
+        "com.netflix.kids",
+        "com.netflix.mediaclient",
+        "com.netflix.ninja",
+        "com.netflix.robin",
+        "com.netflix.starfire"
+      ],
+      "has_applink": true,
+      "domains": [
+        "www.netflix.com",
+        "netflix.com"
+      ],
+      "search": "https://www.netflix.com/search?q={q}",
+      "title_example": "https://www.netflix.com/title/80057281",
+      "note": "search redireciona para login no navegador; no app abre a busca. /title/{id} é o deep link canônico.",
+      "search_status": 200,
+      "search_final_url": "https://www.netflix.com/br/login?nextpage=https%3A%2F%2Fwww.netflix.com%2Fsearch%3Fq%3Dteste",
+      "title_status": 0,
+      "title_final_url": "https://www.netflix.com/title/80057281"
+    },
+    "max": {
+      "packages": [
+        "com.hbo.hbonow",
+        "com.wbd.hbomax",
+        "com.wbd.stream",
+        "com.wbd.stream.debug"
+      ],
+      "has_applink": true,
+      "domains": [
+        "play.hbomax.com",
+        "play.max.com",
+        "www.hbomax.com",
+        "max.com"
+      ],
+      "search": "https://play.hbomax.com/search?q={q}",
+      "title_example": "https://play.hbomax.com/show/urn:hbo:series:GYdGMQQ7H8kgGvwEAAAAK",
+      "note": "Marca voltou a HBO Max em 2025; play.max.com redireciona (301) para play.hbomax.com. Só play.* declara pacotes.",
+      "search_status": 200,
+      "search_final_url": "https://play.hbomax.com/search?q=teste",
+      "title_status": 200,
+      "title_final_url": "https://www.hbomax.com"
+    },
+    "disney": {
+      "packages": [
+        "com.disney.disneyplus"
+      ],
+      "has_applink": true,
+      "domains": [
+        "www.disneyplus.com",
+        "disneyplus.com"
+      ],
+      "search": null,
+      "title_example": null,
+      "note": "Sem URL de busca pública (404). Deep link só por entity-id, que vem da API de disponibilidade.",
+      "search_status": null,
+      "title_status": null
+    },
+    "prime": {
+      "packages": [
+        "com.amazon.amazonvideo.livingroom",
+        "com.amazon.avod",
+        "com.amazon.avod.thirdpartyclient",
+        "com.amazon.avod.thirdpartyclient.xiaomi",
+        "com.amazon.pvandroidauto"
+      ],
+      "has_applink": true,
+      "domains": [
+        "www.primevideo.com",
+        "app.primevideo.com",
+        "primevideo.com"
+      ],
+      "search": "https://www.primevideo.com/search?phrase={q}",
+      "title_example": "https://www.primevideo.com/detail/0KRGHGZCHKS920ZQGY5LBRF7MA",
+      "note": "",
+      "search_status": 200,
+      "search_final_url": "https://www.primevideo.com/search?phrase=teste",
+      "title_status": 200,
+      "title_final_url": "https://www.primevideo.com/detail/0KRGHGZCHKS920ZQGY5LBRF7MA"
+    },
+    "globoplay": {
+      "packages": [
+        "com.globo.globotv"
+      ],
+      "has_applink": true,
+      "domains": [
+        "globoplay.globo.com"
+      ],
+      "search": "https://globoplay.globo.com/busca/?q={q}",
+      "title_example": null,
+      "note": "Streaming Availability não cobre Globoplay; TMDB cobre. Link de título só pela busca ou pela URL da página.",
+      "search_status": 200,
+      "search_final_url": "https://globoplay.globo.com/busca/?q=teste",
+      "title_status": null
+    },
+    "apple": {
+      "packages": [
+        "com.apple.atve.amazon.appletv",
+        "com.apple.atve.amazon.appletv.internal",
+        "com.apple.atve.androidtv.appletv",
+        "com.apple.atve.androidtv.appletv.internal",
+        "com.apple.atve.sony.appletv",
+        "com.apple.atve.sony.appletv.internal"
+      ],
+      "has_applink": true,
+      "domains": [
+        "tv.apple.com"
+      ],
+      "search": "https://tv.apple.com/br/search?term={q}",
+      "title_example": "https://tv.apple.com/br/show/ruptura/umc.cmc.1srk2goyh2q2zdxcx605w8vtx",
+      "note": "Pacotes declarados são do app Apple TV para Android/Android TV/Fire TV/Sony.",
+      "search_status": 200,
+      "search_final_url": "https://tv.apple.com/br/search?term=teste",
+      "title_status": 200,
+      "title_final_url": "https://tv.apple.com/br/show/ruptura/umc.cmc.1srk2goyh2q2zdxcx605w8vtx"
+    },
+    "paramount": {
+      "packages": [
+        "com.cbs.app",
+        "com.cbs.ca",
+        "com.cbs.ott"
+      ],
+      "has_applink": true,
+      "domains": [
+        "www.paramountplus.com",
+        "paramountplus.com"
+      ],
+      "search": "https://www.paramountplus.com/br/search/?q={q}",
+      "title_example": "https://www.paramountplus.com/br/shows/yellowstone/",
+      "note": "Servidor responde 406 a clientes não-navegador; no navegador a busca abre (conferido).",
+      "search_status": 406,
+      "search_final_url": "https://www.paramountplus.com/br/search/?q=teste",
+      "title_status": 406,
+      "title_final_url": "https://www.paramountplus.com/br/shows/yellowstone/"
+    },
+    "crunchyroll": {
+      "packages": [
+        "com.crunchyroll.crunchyroid",
+        "com.crunchyroll.manga"
+      ],
+      "has_applink": true,
+      "domains": [
+        "www.crunchyroll.com",
+        "crunchyroll.com"
+      ],
+      "search": "https://www.crunchyroll.com/pt-br/search?q={q}",
+      "title_example": "https://www.crunchyroll.com/pt-br/series/GG5H5XQ0D/one-piece",
+      "note": "",
+      "search_status": 200,
+      "search_final_url": "https://www.crunchyroll.com/pt-br/search?q=teste",
+      "title_status": 200,
+      "title_final_url": "https://www.crunchyroll.com/pt-br/series/GG5H5XQ0D/one-piece"
+    }
+  },
+  "domains": [
+    {
+      "service": "netflix",
+      "domain": "www.netflix.com",
+      "status": 200,
+      "final_url": "https://www.netflix.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.netflix.NGP.Pandora",
+        "com.netflix.bheem",
+        "com.netflix.kids",
+        "com.netflix.mediaclient",
+        "com.netflix.ninja",
+        "com.netflix.robin",
+        "com.netflix.starfire"
+      ]
+    },
+    {
+      "service": "netflix",
+      "domain": "netflix.com",
+      "status": 200,
+      "final_url": "https://netflix.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.netflix.NGP.Pandora",
+        "com.netflix.bheem",
+        "com.netflix.kids",
+        "com.netflix.mediaclient",
+        "com.netflix.ninja",
+        "com.netflix.robin",
+        "com.netflix.starfire"
+      ]
+    },
+    {
+      "service": "max",
+      "domain": "play.hbomax.com",
+      "status": 200,
+      "final_url": "https://play.hbomax.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.hbo.hbonow",
+        "com.wbd.hbomax",
+        "com.wbd.stream",
+        "com.wbd.stream.debug"
+      ]
+    },
+    {
+      "service": "max",
+      "domain": "play.max.com",
+      "status": 200,
+      "final_url": "https://play.max.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.hbo.hbonow",
+        "com.wbd.hbomax",
+        "com.wbd.stream",
+        "com.wbd.stream.debug"
+      ]
+    },
+    {
+      "service": "max",
+      "domain": "www.hbomax.com",
+      "status": 200,
+      "final_url": "https://www.hbomax.com/.well-known/assetlinks.json",
+      "packages": []
+    },
+    {
+      "service": "max",
+      "domain": "max.com",
+      "status": 200,
+      "final_url": "https://www.hbomax.com/.well-known/assetlinks.json",
+      "packages": []
+    },
+    {
+      "service": "disney",
+      "domain": "www.disneyplus.com",
+      "status": 200,
+      "final_url": "https://www.disneyplus.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.disney.disneyplus"
+      ]
+    },
+    {
+      "service": "disney",
+      "domain": "disneyplus.com",
+      "status": 200,
+      "final_url": "https://www.disneyplus.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.disney.disneyplus"
+      ]
+    },
+    {
+      "service": "prime",
+      "domain": "www.primevideo.com",
+      "status": 200,
+      "final_url": "https://www.primevideo.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.amazon.amazonvideo.livingroom",
+        "com.amazon.avod",
+        "com.amazon.avod.thirdpartyclient",
+        "com.amazon.avod.thirdpartyclient.xiaomi",
+        "com.amazon.pvandroidauto"
+      ]
+    },
+    {
+      "service": "prime",
+      "domain": "app.primevideo.com",
+      "status": 200,
+      "final_url": "https://app.primevideo.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.amazon.amazonvideo.livingroom",
+        "com.amazon.avod",
+        "com.amazon.avod.thirdpartyclient",
+        "com.amazon.avod.thirdpartyclient.xiaomi",
+        "com.amazon.pvandroidauto"
+      ]
+    },
+    {
+      "service": "prime",
+      "domain": "primevideo.com",
+      "status": 200,
+      "final_url": "https://www.primevideo.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.amazon.amazonvideo.livingroom",
+        "com.amazon.avod",
+        "com.amazon.avod.thirdpartyclient",
+        "com.amazon.avod.thirdpartyclient.xiaomi",
+        "com.amazon.pvandroidauto"
+      ]
+    },
+    {
+      "service": "globoplay",
+      "domain": "globoplay.globo.com",
+      "status": 200,
+      "final_url": "https://globoplay.globo.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.globo.globotv"
+      ]
+    },
+    {
+      "service": "apple",
+      "domain": "tv.apple.com",
+      "status": 200,
+      "final_url": "https://tv.apple.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.apple.atve.amazon.appletv",
+        "com.apple.atve.amazon.appletv.internal",
+        "com.apple.atve.androidtv.appletv",
+        "com.apple.atve.androidtv.appletv.internal",
+        "com.apple.atve.sony.appletv",
+        "com.apple.atve.sony.appletv.internal"
+      ]
+    },
+    {
+      "service": "paramount",
+      "domain": "www.paramountplus.com",
+      "status": 200,
+      "final_url": "https://www.paramountplus.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.cbs.app",
+        "com.cbs.ca",
+        "com.cbs.ott"
+      ]
+    },
+    {
+      "service": "paramount",
+      "domain": "paramountplus.com",
+      "status": 406,
+      "final_url": "https://www.paramountplus.com/.well-known/assetlinks.json",
+      "packages": []
+    },
+    {
+      "service": "crunchyroll",
+      "domain": "www.crunchyroll.com",
+      "status": 200,
+      "final_url": "https://www.crunchyroll.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.crunchyroll.crunchyroid",
+        "com.crunchyroll.manga"
+      ]
+    },
+    {
+      "service": "crunchyroll",
+      "domain": "crunchyroll.com",
+      "status": 200,
+      "final_url": "https://crunchyroll.com/.well-known/assetlinks.json",
+      "packages": [
+        "com.crunchyroll.crunchyroid"
+      ]
+    }
+  ]
+}

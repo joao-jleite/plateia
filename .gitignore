@@ -1,0 +1,22 @@
+# Segredos e dados pessoais da pesquisa (fase 01)
+research/.env
+research/NetflixViewingHistory.csv
+
+# Ambiente Python
+research/.venv/
+__pycache__/
+*.pyc
+
+# Respostas brutas das APIs (grandes; os resumos em research/out/*.json ficam no git)
+research/out/raw/
+
+# Flutter / build (fases seguintes)
+build/
+dist/
+.dart_tool/
+*.apk
+*.aab
+*.jks
+*.keystore
+supabase/.temp/
+.env
