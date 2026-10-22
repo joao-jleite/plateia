@@ -37,7 +37,7 @@ Regras fixas: chave de API só nos secrets das Edge Functions; o app fala com o 
 
 ## 3. Stack e versões
 
-Flutter 3.44 · Dart 3.12 (os da máquina). Pacotes (versões fixadas na fase 03 pelo `flutter pub add`):
+Flutter 3.44.8 · Dart 3.12.2 (os da máquina). Versões fixadas na fase 03 (`pubspec.yaml`): supabase_flutter 2.18, flutter_riverpod 3.4 + riverpod_annotation 4.0 / riverpod_generator 4.0, go_router 18, freezed 4.0.0-dev.3 (única compatível com o analyzer do Dart 3.12) + freezed_annotation 3.1, json_serializable 6.15, google_sign_in 7.2, url_launcher 6.3, android_intent_plus 6.1, cached_network_image 4.0, intl 0.20, http 1.6, mocktail 1.0. Os arquivos gerados (`*.g.dart`, `*.freezed.dart`) ficam no git; `build.yaml` põe `field_rename: snake` em todo `fromJson`. Como rodar: `docs/DEV.md`.
 
 | Papel | Pacote | Nota |
 |---|---|---|
@@ -71,8 +71,10 @@ lib/
     theme/                  cores, tipografia (fase 08 refina)
     widgets/                AsyncView (carregando/vazio/erro), PosterTile, RatingStars, SpoilerBlur
     utils/                  datas pt-BR, moeda, slugs, imagens do TMDB
+  dev/fixtures/             backend de amostra (BACKEND=fixtures): auth/perfil/catálogo em memória, 10 títulos; recusado em release
   features/
     auth/                   login, cadastro, Google, reset
+    catalog/                domain: modelos do catálogo (Title, Availability, StreamingProvider…) · data: CatalogRepository (Edge Functions) · providers Riverpod usados por home/search/title
     onboarding/             username, importar, seguir
     home/                   seções do Início (home_sections)
     search/                 títulos (catalog-search) e pessoas (profiles)
@@ -144,7 +146,9 @@ Comuns a todas: `POST` com JSON; exigem `Authorization: Bearer <jwt do usuário>
 
 Pontuação do `import-match` (fase 05 implementa e testa): nome normalizado (minúsculas, sem acento e pontuação) igual ao `name`/`title` ou ao original → +0,6; tipo bate com o palpite (padrão de temporada ⇒ `tv`) → +0,2; ano bate (quando houver) → +0,1; único resultado com popularidade relevante → +0,1. `high` ≥ 0,9 e sem segundo candidato ≥ 0,8; `medium` 0,6–0,9; `low` < 0,6. `medium` e `low` vão para `import_candidates`.
 
-**Deploy sem Docker e sem Deno local** (a máquina não tem nenhum dos dois): `supabase functions deploy <nome> --use-api --project-ref <ref>` empacota pela Management API. Não há como rodar função localmente aqui (`functions serve` precisa de Docker); o teste é no projeto de dev, lendo os logs no dashboard. Instalar o Deno (`winget install DenoLand.Deno`) é opcional e só serve para `deno check` dos arquivos antes do deploy.
+**Estrutura (fase 03):** cada função é `handler.ts` + `index.ts`. O handler recebe as dependências por parâmetro (`requireUser`, `db: CatalogDb`, `tmdb(counter)`, `motn(counter)`, `now`) e é o que os testes exercitam com fakes (`supabase/functions/tests/`); o `index.ts` só liga `Deno.serve` às implementações reais de `_shared/` (`supabase.ts` = clientes + `SupabaseCatalogDb`; `tmdb.ts`/`motn.ts` = clientes HTTP e conversões puras; `ttl.ts` = regras de cache; `http.ts` = envelope e erro padrão; `log.ts` = a linha `{fn, user, ms, upstream_calls}`). Provider desconhecido que apareça no `watch/providers` entra "lazy" em `providers` só com nome e logo do TMDB.
+
+**Deploy sem Docker** (a máquina não tem Docker): `supabase functions deploy <nome> --use-api` empacota pela Management API. `functions serve` não funciona aqui; o teste de integração é no projeto de dev, lendo os logs no dashboard. O Deno está instalado (`npm i -g deno`): em `supabase/functions/`, `deno task check` tipa as 5 funções (resolve `npm:@supabase/supabase-js@2` pela rede) e `deno task test` roda os testes unitários dos handlers (cache quente = `upstream_calls: 0`, cota, force < 24 h, casamento de links, HBO Max, home 6 h, providers-sync, account-delete).
 
 ## 10. Cache e cota
 
@@ -236,9 +240,10 @@ Regras: `assert` com mensagem; `reset role` antes de trocar de usuário; nunca d
 Limites do stub: não há GoTrue, PostgREST nem API de Storage; o que se testa é o Postgres (policies, triggers, grants, funções), que é onde mora a regra. Se o Supabase mudar algo que o stub reproduz, ajuste o stub, nunca a migração.
 
 ### 13.3 Dart
-- `test/features/import_netflix/domain/`: parser (padrões de título, datas D/M vs M/D, BOM, aspas), agrupador, idempotência.
-- `test/features/subscribe/domain/`: recomendador com os casos fixos da fase 07 (lista vazia, empate, título em vários, em nenhum, preço desatualizado).
-- Widget: telas principais com `ProviderScope(overrides: [...])` e repositórios falsos; sem rede.
+- `test/features/title/domain/`: `resolveWatchAction` (texto e destino do botão), `groupAvailability` (um cartão por streaming, ordem, variantes), HBO Max. `test/features/onboarding/domain/`: regra do @. `test/core/router/`: `gateFrom` + `computeRedirect`.
+- `test/features/import_netflix/domain/` (fase 05): parser (padrões de título, datas D/M vs M/D, BOM, aspas), agrupador, idempotência.
+- `test/features/subscribe/domain/` (fase 07): recomendador com os casos fixos (lista vazia, empate, título em vários, em nenhum, preço desatualizado).
+- Widget: `test/helpers/pump_app.dart` sobe a tela com `fixtureOverrides()` (repositórios de amostra sem latência), imagens de rede desligadas (`imagesEnabledProvider`), launcher falso (`streamingLauncherProvider`) e `retry: null` no `ProviderScope` (erro proposital não pode deixar timer pendente). Telas cobertas na fase 03: login, username + "Agora não", Início (dado/erro/retry), Busca (debounce, vazio, acento), Detalhe (ordem, botão por caso, vazio, erro, cache do repositório).
 
 ## 14. Migrações e ambientes
 

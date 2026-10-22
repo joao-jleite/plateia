@@ -25,3 +25,14 @@ supabase/.temp/
 node_modules/
 tools/db/.pgdata/
 tools/db/.pgdata-*/
+
+# Flutter (fase 03): IDE e arquivos locais do Android
+.idea/
+*.iml
+android/local.properties
+android/.gradle/
+android/app/.cxx/
+android/key.properties
+coverage/
+.flutter-plugins-dependencies
+*.log

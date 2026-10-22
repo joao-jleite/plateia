@@ -1,0 +1,53 @@
+name: watchlog
+description: "Plateia (codinome): o que você assiste em todos os streamings, onde cada título está no Brasil e uma rede social em volta."
+# Pacote privado: nunca publicar no pub.dev.
+publish_to: "none"
+
+# versionCode = o número depois do "+". A fase 08 passa a controlar isso no release.
+version: 0.3.0+3
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Sem isto o Material desenha os próprios textos em inglês (seletor de data, "Cancel"…).
+  flutter_localizations:
+    sdk: flutter
+
+  # Backend: Auth, PostgREST, Storage e functions.invoke (docs/ARQUITETURA.md §8)
+  supabase_flutter: ^2.18.3
+  # Estado: Riverpod 3 com codegen (§5)
+  flutter_riverpod: ^3.4.3
+  riverpod_annotation: ^4.0.7
+  # Navegação (§6)
+  go_router: ^18.1.1
+  # Modelos imutáveis + fromJson das linhas do PostgREST (§7)
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.12.0
+  # Login Google pelo fluxo nativo → auth.signInWithIdToken
+  google_sign_in: ^7.2.0
+  # Abrir o app do streaming: URL em modo externo e, para o Disney+, o pacote
+  url_launcher: ^6.3.3
+  android_intent_plus: ^6.1.0
+  # Pôsteres do TMDB com cache em disco
+  cached_network_image: ^4.0.3
+  # Datas em pt-BR
+  intl: ^0.20.2
+  http: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.15.1
+  riverpod_generator: ^4.0.9
+  # 4.0.0-dev.3 é a única versão do freezed compatível com o analyzer do Dart 3.12
+  # (a 3.2.x para no analyzer 10). Ver "Decisões" no CLAUDE.md.
+  freezed: ^4.0.0-dev.3
+  json_serializable: ^6.15.2
+  mocktail: ^1.0.5
+
+flutter:
+  uses-material-design: true

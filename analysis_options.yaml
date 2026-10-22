@@ -1,0 +1,16 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # Código gerado não entra na conta do `flutter analyze` (freezed/riverpod/json).
+    invalid_annotation_target: ignore
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "build/**"
+
+linter:
+  rules:
+    prefer_single_quotes: true
+    unawaited_futures: true
+    avoid_print: true

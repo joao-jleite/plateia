@@ -42,12 +42,66 @@ Tudo o que só você pode fazer (contas, chaves, celular, dinheiro). Cada fase a
   2. No PowerShell, na pasta do projeto: `supabase login` (abre o navegador) e `supabase link --project-ref <ref do projeto>`. Com isso a fase 03 aplica o banco com `supabase db push`.
   3. Authentication → URL Configuration → Redirect URLs: adicionar `io.github.joaojleite.watchlog://login-callback`.
 - [ ] **Conferir os preços** quando quiser (dashboard → Table Editor → `provider_prices`): corrigir `price_cents` e marcar `is_estimate = false`. Fontes: página de planos de cada streaming. Fase 07 usa.
-- [ ] **Opcional:** instalar o Deno (`winget install DenoLand.Deno`) só para eu conseguir checar o código das Edge Functions antes do deploy. Sem ele tudo funciona; o deploy usa `--use-api`.
+- [x] ~~**Opcional:** instalar o Deno~~ → instalei na fase 03 por `npm i -g deno` (2.9.6); `deno task check` e `deno task test` rodam em `supabase/functions/`.
+
+## Fase 03 · Base e catálogo
+
+O app, as 5 Edge Functions, os testes e o APK estão prontos, mas **nada foi verificado contra um projeto Supabase real** (ele ainda não existe). Abaixo, o que você roda, na ordem, e depois a lista do que eu confiro quando existir. O APK na Área de Trabalho (`plateia-fase03.apk`) roda com dados de amostra (10 títulos, "One Piece" entre eles) e não precisa de nada disso para você sentir o app.
+
+### Passo a passo (uma vez, ~30 min)
+
+- [ ] **1. Projeto Supabase** (item da fase 02, acima): `sa-east-1`, `.env` na raiz com `SUPABASE_URL=` e `SUPABASE_ANON_KEY=` (pode ser a publishable key `sb_publishable_…`), `supabase login` e `supabase link --project-ref <ref>`.
+- [ ] **2. Banco**: no PowerShell, na pasta do projeto:
+  ```powershell
+  npm run db:test          # tem que ficar verde (2/2 testes) antes do push
+  supabase db push
+  ```
+  Se a `0002_storage_avatars.sql` falhar por permissão em `storage.objects`: cole o arquivo no SQL Editor do dashboard e rode `supabase migration repair --status applied 0002`.
+- [ ] **3. Segredos das funções** (as chaves da fase 01; nunca no chat nem no git):
+  ```powershell
+  supabase secrets set TMDB_API_KEY=<token v4 "API Read Access Token" do TMDB> RAPIDAPI_KEY=<X-RapidAPI-Key>
+  ```
+- [ ] **4. Deploy das 5 funções** (sem Docker, pela Management API):
+  ```powershell
+  supabase functions deploy catalog-search --use-api
+  supabase functions deploy catalog-title --use-api
+  supabase functions deploy home-sections --use-api
+  supabase functions deploy providers-sync --use-api
+  supabase functions deploy account-delete --use-api
+  ```
+- [ ] **5. Auth por e-mail**: dashboard → Authentication → Providers → Email. Para testar sem caixa de entrada, desligue "Confirm email" no projeto de dev (o app já trata os dois casos). Em URL Configuration, confirme `io.github.joaojleite.watchlog://login-callback` em Redirect URLs.
+- [ ] **6. Login Google** (opcional para testar o resto; obrigatório antes da loja):
+  1. Google Cloud → APIs e serviços → Credenciais → "ID do cliente OAuth" tipo **Aplicativo da Web** (nome livre). Guarde o Client ID e o Client Secret.
+  2. Outro "ID do cliente OAuth" tipo **Android**: pacote `io.github.joaojleite.watchlog` e o SHA-1 da keystore de debug, que sai de:
+     ```powershell
+     keytool -list -v -keystore "$env:USERPROFILE\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+     ```
+     (na fase 08 você adiciona também o SHA-1 da keystore de release).
+  3. Supabase → Authentication → Providers → Google: ligar, colar Client ID e Secret do cliente **Web**.
+  4. O Client ID **Web** vai para o app por `--dart-define=GOOGLE_WEB_CLIENT_ID=…` (passo 7). Nada de `google-services.json`.
+- [ ] **7. Rodar o app contra o projeto** (emulador `lume34` ou celular com depuração USB):
+  ```powershell
+  flutter run --dart-define=SUPABASE_URL=https://<ref>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon ou publishable key> --dart-define=GOOGLE_WEB_CLIENT_ID=<client id web>
+  ```
+  Cadastre-se, escolha o @, busque "One Piece", abra o detalhe e toque em "Abrir na Netflix". Depois me mande "verifica a fase 03" que eu confiro a lista abaixo pelos logs.
+- [ ] **8. Logo do TMDB** (a atribuição exige o logo, não só o texto): baixe o SVG azul em https://www.themoviedb.org/about/logos-attribution e salve como `assets/tmdb/logo.svg`. Eu ligo na tela Sobre e na seção Onde assistir na fase 08 (ou antes, se você pedir).
+
+### O que eu verifico quando o projeto existir (não dá para fazer sem ele)
+
+- [ ] `supabase db push` aplicou `0001` e `0002` (`supabase migration list` mostra as duas como remotas).
+- [ ] As 5 funções aparecem no dashboard (Edge Functions) e respondem `401 unauthorized` sem JWT.
+- [ ] `supabase secrets list` mostra `TMDB_API_KEY` e `RAPIDAPI_KEY`.
+- [ ] `providers-sync` devolve `missing: []` e os nomes do TMDB batem com o seed (1899 deve vir como "Max"/"HBO Max"; se algum id vier ausente, migração `0003` corrige). `providers.logo_path` preenchido para os 8.
+- [ ] Fluxo real: buscar "One Piece" → detalhe em pt-BR → Onde assistir com Netflix e Crunchyroll → botão "Abrir na Netflix" (link da Streaming Availability) abre o app ou o site.
+- [ ] Abrir o mesmo título de novo: log de `catalog-title` com `upstream_calls: 0`; `api_usage` (`motn`) subiu só 1 na primeira abertura.
+- [ ] Início: `home-sections` com `upstream_calls: 17` na primeira chamada e `0` nas seguintes por 6 h; as 9 seções preenchidas.
+- [ ] Login por e-mail (com e sem "Confirm email"), "Esqueci a senha" abre o app pelo deep link e troca a senha, Google entra e cria o perfil com nome e foto, "Apagar conta" some do `auth.users` e devolve ao login.
+- [ ] No celular, com os apps instalados: o botão abre o app oficial (não o navegador) para Netflix, HBO Max (`play.hbomax.com`), Prime Video, Globoplay (busca), Crunchyroll, Disney+ (pelo pacote). Os 8 links de busca da fase 01 continuam pendentes do seu teste.
 
 ## Para as próximas fases (já dá para adiantar)
 
 - [x] ~~**Supabase**: criar projeto~~ → movido para a fase 02, acima.
-- [ ] **Google Cloud**: projeto + credencial OAuth "Android" (SHA-1 da keystore de debug e, depois, da release) para o login Google do Supabase Auth. Fase 03/04.
+- [x] ~~**Google Cloud**: credencial OAuth para o login Google~~ → detalhado no passo 6 da fase 03, acima.
 - [ ] **Conta Google Play Console** (US$ 25 uma vez) e **keystore de release** (guardar senha fora do git). Fase 08.
 - [ ] **Antes de cobrar qualquer coisa ou colocar anúncio**: pedir licença comercial do TMDB (e-mail para `sales@themoviedb.org`, assunto "Commercial API Use", informando o país) e assinar o Starter da Streaming Availability (US$ 49/mês). Fase 08.
 - [ ] **Decidir preço** do plano premium (se houver). Fase 07/08.

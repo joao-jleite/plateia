@@ -1,0 +1,13 @@
+{
+  "//": "Config local para `deno check`/`deno test` (sem Docker). As funções importam supabase-js por `npm:` direto no código, então não dependem de import map no deploy (`supabase functions deploy --use-api`).",
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["deno.window"]
+  },
+  "lock": false,
+  "nodeModulesDir": "none",
+  "tasks": {
+    "check": "deno check catalog-search/index.ts catalog-title/index.ts home-sections/index.ts providers-sync/index.ts account-delete/index.ts",
+    "test": "deno test --allow-env tests/"
+  }
+}

@@ -1,0 +1,73 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- O app só funciona logado e tudo vem do Supabase/TMDB: internet é obrigatória
+         também em release (o template só a declara nos manifestos de debug/profile). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:label="Plateia"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Volta do OAuth (Google pelo navegador) e do link de redefinir senha:
+                 io.github.joaojleite.watchlog://login-callback
+                 Mesmo valor em supabase/config.toml (additional_redirect_urls) e no dashboard. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="io.github.joaojleite.watchlog" android:host="login-callback"/>
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+
+    <!-- Android 11+ (package visibility): sem isto o app não consegue nem saber se o
+         streaming está instalado nem abrir https:// em modo externo. Pacotes =
+         providers.android_package da migração 0001 (fase 01: assetlinks.json). -->
+    <queries>
+        <!-- Flutter: processar texto selecionado -->
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- url_launcher em modo externo: qualquer app que abra https (navegador ou o
+             app do streaming via App Links) e a Play Store (market://) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="market"/>
+        </intent>
+        <!-- Os 8 streamings destacados: android_intent_plus.canResolveActivity() e o
+             botão "Abrir o Disney+" dependem de enxergar o pacote. -->
+        <package android:name="com.netflix.mediaclient"/>
+        <package android:name="com.amazon.avod.thirdpartyclient"/>
+        <package android:name="com.disney.disneyplus"/>
+        <package android:name="com.wbd.stream"/>
+        <package android:name="com.globo.globotv"/>
+        <package android:name="com.apple.atve.androidtv.appletv"/>
+        <package android:name="com.cbs.app"/>
+        <package android:name="com.crunchyroll.crunchyroid"/>
+    </queries>
+</manifest>

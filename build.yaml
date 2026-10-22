@@ -1,0 +1,10 @@
+# Opções globais do json_serializable: as linhas do PostgREST e as respostas das
+# Edge Functions vêm em snake_case; assim nenhum modelo precisa de @JsonKey(name:).
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          field_rename: snake
+          explicit_to_json: true
+          include_if_null: false
