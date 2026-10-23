@@ -5,6 +5,7 @@ import '../../core/model/media_type.dart';
 import '../../features/catalog/domain/catalog_models.dart';
 import '../../features/diary/data/entries_repository.dart';
 import '../../features/diary/domain/entry.dart';
+import '../../features/import_netflix/domain/merge.dart';
 import '../../features/lists/data/lists_repository.dart';
 import '../../features/lists/domain/list_models.dart';
 import '../../features/onboarding/data/profile_repository.dart';
@@ -175,10 +176,44 @@ class FixtureDiaryStore {
     final d = draft.normalized();
     final previous = entries[key(userId, d.titleId)];
     final title = titleById(d.titleId);
+    // Editar à mão "reivindica" o registro (source = manual), como o
+    // SupabaseEntriesRepository faz: a importação passa a só preencher vazios.
     final saved = optimisticEntry(previous, d, userId: userId, title: title, now: _clock())
-        .copyWith(id: previous?.id ?? nextId('entry'));
+        .copyWith(id: previous?.id ?? nextId('entry'), source: 'manual');
     entries[key(userId, d.titleId)] = saved;
     return saved;
+  }
+
+  /// Importação da Netflix: linha nova `watched` com `source = netflix_import`.
+  Entry putImported(String userId, EntryInsert ins) {
+    final title = titleById(ins.titleId);
+    final now = _clock();
+    final saved = Entry(
+      id: nextId('entry'),
+      userId: userId,
+      titleId: ins.titleId,
+      status: EntryStatus.watched,
+      watchedAt: ins.watchedAt,
+      episodesWatched: ins.episodesWatched,
+      source: 'netflix_import',
+      createdAt: now,
+      updatedAt: now,
+      title: title,
+    );
+    entries[key(userId, ins.titleId)] = saved;
+    return saved;
+  }
+
+  /// Importação: só os campos presentes no patch (data, episódios).
+  void patchImported(String userId, EntryPatch p) {
+    final k = key(userId, p.titleId);
+    final e = entries[k];
+    if (e == null) return;
+    entries[k] = e.copyWith(
+      watchedAt: p.watchedAt ?? e.watchedAt,
+      episodesWatched: p.episodesWatched ?? e.episodesWatched,
+      updatedAt: _clock(),
+    );
   }
 
   void remove(String userId, String titleId) => entries.remove(key(userId, titleId));

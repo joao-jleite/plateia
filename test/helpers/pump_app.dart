@@ -8,9 +8,11 @@ import 'package:watchlog/core/widgets/poster_image.dart';
 import 'package:watchlog/dev/fixtures/fixture_auth_repository.dart';
 import 'package:watchlog/dev/fixtures/fixture_catalog_repository.dart';
 import 'package:watchlog/dev/fixtures/fixture_diary.dart';
+import 'package:watchlog/dev/fixtures/fixture_import_repository.dart';
 import 'package:watchlog/dev/fixtures/fixture_overrides.dart';
 import 'package:watchlog/features/auth/domain/auth_user.dart';
 import 'package:watchlog/features/catalog/data/catalog_repository.dart';
+import 'package:watchlog/features/import_netflix/presentation/import_providers.dart';
 import 'package:watchlog/features/title/domain/watch_action.dart';
 import 'package:watchlog/features/title/presentation/streaming_launcher.dart';
 
@@ -33,8 +35,10 @@ Future<FakeLauncher> pumpScreen(
   List<Override> overrides = const [],
   Map<String, Widget Function(GoRouterState state)> routes = const {},
   AuthUser? user = testUser,
+  FixtureAuthRepository? auth,
   CatalogRepository? catalog,
   FixtureDiaryStore? diary,
+  FixtureImportRepository? imports,
   bool failWrites = false,
 }) async {
   final launcher = FakeLauncher();
@@ -51,14 +55,17 @@ Future<FakeLauncher> pumpScreen(
       retry: (_, _) => null,
       overrides: [
         ...fixtureOverrides(
-          auth: FixtureAuthRepository(initialUser: user, latency: Duration.zero),
+          auth: auth ?? FixtureAuthRepository(initialUser: user, latency: Duration.zero),
           catalog: catalog ?? FixtureCatalogRepository(latency: Duration.zero),
           diary: diary,
+          imports: imports,
           failWrites: failWrites,
           latency: Duration.zero,
         ),
         imagesEnabledProvider.overrideWithValue(false),
         streamingLauncherProvider.overrideWithValue(launcher),
+        // o isolate do `compute` não termina no tempo falso do testWidgets
+        backgroundRunnerProvider.overrideWithValue(inlineRunner),
         ...overrides,
       ],
       child: MaterialApp.router(

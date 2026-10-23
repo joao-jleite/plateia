@@ -17,7 +17,7 @@ Tudo o que só você pode fazer (contas, chaves, celular, dinheiro). Cada fase a
   1. https://api.watchmode.com → "Get a free API key" → confirmar e-mail.
   2. Colar em `research/.env` como `WATCHMODE_API_KEY=`.
 - [ ] **Rodar a pesquisa com as chaves**: PowerShell em `research\` → `.\run_all.ps1`. Gasta ~40 chamadas TMDB, ~44 créditos Watchmode, ~21 req MOTN. Depois me mande "roda a fase 01 de novo" para eu atualizar os números no documento.
-- [ ] **CSV da Netflix**: no navegador, Conta → Perfis → seu perfil → *Atividade de visualização* → rolar até o fim → "Baixar tudo". Salvar como `research/NetflixViewingHistory.csv` (está no `.gitignore`). Destrava o formato real para a fase 05.
+- [ ] **CSV da Netflix**: no navegador, Conta → Perfis → seu perfil → *Atividade de visualização* → rolar até o fim → "Baixar tudo". Salvar como `research/NetflixViewingHistory.csv` (está no `.gitignore`). Destrava o formato real para a fase 05 (passo 1 da seção "Fase 05", abaixo).
 - [ ] **Testar no celular se o link abre o app** (2 min, com os apps instalados). Mande cada URL para você mesmo no Telegram/WhatsApp e toque:
   - Netflix: `https://www.netflix.com/search?q=stranger%20things`
   - HBO Max: `https://play.hbomax.com/search?q=the%20last%20of%20us`
@@ -125,6 +125,39 @@ Folha Registrar, listas, perfil com abas e contadores, estatísticas e configura
 - [ ] `lists!inner(user_id)` com `eq('lists.user_id', uid)` filtra só as minhas listas em `myListIdsContaining`.
 - [ ] Trigger `entries_log_activity`: registrar pela folha cria `activities` (`watched`/`rated`/`reviewed`); "quero ver" não cria; desmarcar apaga em cascata.
 - [ ] Perfil privado ligado em Configurações: o trigger `profiles_before_update` continua aceitando pendentes ao voltar para público (fase 06 testa de verdade).
+
+## Fase 05 · Importar Netflix
+
+Parser, agrupador, regra de merge, Edge Function `import-match`, migração `0004`, telas de importar/revisar e o backend de fixtures estão prontos e testados (135+ testes Dart, `npm run db:test` 4/4, `deno task test` 30/30), e o fluxo rodou no emulador com um CSV sintético de 23 linhas (capturas em `docs/capturas/fase05/`). O que **não** foi possível: o seu CSV real (`research/NetflixViewingHistory.csv` não existe) e o projeto Supabase. O `plateia-fase05.apk` na Área de Trabalho roda com dados de amostra: no onboarding (ou em Perfil → ⚙ → Importar histórico da Netflix) toque em "Usar CSV de exemplo (fixtures)" ou escolha um CSV seu pelo seletor; o resumo, a revisão e o aviso de "já importado" funcionam sem servidor.
+
+### O que você roda (depois dos passos das fases 03 e 04)
+
+- [ ] **1. CSV real, ensaio sem servidor** (1 min): baixe o histórico (Conta → Perfis → seu perfil → Atividade de visualização → "Baixar tudo"), salve como `research/NetflixViewingHistory.csv` (já no `.gitignore`) e rode na raiz do repo:
+  ```powershell
+  dart run tool/import_dry_run.dart research/NetflixViewingHistory.csv
+  ```
+  Ele imprime só contagens (linhas, grupos, padrões, datas, incertos). Me mande a saída: é o que confirma o formato real (ordem da data, padrões `Temporada`/`Parte`/arco) e o número de chamadas à função. `--names` lista os nomes agrupados no seu terminal, se quiser conferir o agrupamento.
+- [ ] **2. Migração 0004**: `npm run db:test` (4/4 verde) e `supabase db push`. A `0004_import_idempotency.sql` acrescenta `imports.titles_new`, a unique `(user_id, raw_name)` em `import_candidates` e troca o trigger do evento `imported`. `supabase migration list` deve mostrar 0001–0004 remotas.
+- [ ] **3. Deploy da função**: `supabase functions deploy import-match --use-api` (usa o mesmo `TMDB_API_KEY` já configurado).
+- [ ] **4. Medir a % de casamento com o CSV real** (é a meta da fase: ≥ 90% automático): rode o app contra o projeto (`flutter run --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=…`), vá em Perfil → ⚙ → Importar histórico da Netflix → escolha o CSV. O resumo diz "N títulos importados, M para revisar"; a % é N / (N + M). O log do app (`adb logcat -s flutter`) imprime a mesma conta pronta: `[import] rows=… groups=… high=… review=… auto_match=NN%`. Me mande essa linha e, se ficar abaixo de 90%, os nomes da tela de revisão que você achar que deveriam ter casado sozinhos: a correção é na pontuação da função (`supabase/functions/import-match/handler.ts`) ou nos padrões do parser (`lib/features/import_netflix/domain/title_patterns.dart`), e vale para todo mundo.
+- [ ] **5. Rate limit e tempo da função com 5 mil linhas**: um histórico de 5 mil linhas vira ~500–800 nomes, ou seja, 5–8 chamadas de até 100 nomes, cada uma com até ~100–200 buscas no TMDB (concorrência 5, ~10–20 s). Se o dashboard mostrar `import-match` estourando o tempo limite da Edge Function, baixe `matchBatchSize` de 100 para 50 em `lib/features/import_netflix/presentation/import_providers.dart` (o servidor não muda). Se o TMDB responder 429 nos logs, aí sim é o rate limit: me avise que eu adiciono espera/retry no cliente da função.
+
+### Decisões de spec que merecem o seu olhar (▶ também no `CLAUDE.md`, Decisões de 22/10)
+
+- ▶ **Editar à mão marca o registro como `manual`**, e a importação passa a só preencher o que estiver vazio nele; um registro ainda "só importado" tem data e episódios atualizados a cada reimportação (nunca para trás). Alternativa: a importação nunca mais tocar num título que já está no diário.
+- ▶ **Status diferente de "assisti" nunca é alterado pela importação** (se você pôs "quero ver" e o CSV diz que assistiu, fica "quero ver"). Alternativa: o CSV ganhar e virar "assisti".
+- ▶ **Filme repetido em dias diferentes não vira reassistir** (`watch_count` fica 1), porque a Netflix grava uma linha por dia de reprodução, não por sessão inteira. Alternativa: contar como reassistido quando as datas tiverem mais de 30 dias de distância.
+- ▶ **Sem ano no CSV, "exato + tipo" só vira automático se for o único casamento exato relevante**; homônimos (One Piece anime × live action) vão sempre para a revisão. É o que segura a precisão; se a % ficar baixa por isso, dá para aceitar o mais popular quando a diferença de popularidade for grande.
+- ▶ **`ViewingActivity.csv`: trailers/prévias (coluna `Supplemental Video Type`) e reproduções com menos de 2 min ficam de fora.** O limite de 2 min é chute; o seu arquivo real diz se está bom.
+- ▶ **Data ambígua (nenhum campo > 12 no arquivo inteiro) é lida como dia/mês** com aviso no resumo. Conta brasileira exporta `D/M/AA` segundo os relatos; o seu CSV confirma.
+
+### O que eu verifico quando o projeto existir
+
+- [ ] `import-match` responde `401` sem JWT e, com JWT, devolve `matches` com `title_id` preenchido; `titles` ganha linhas com `fetched_at = 1970-01-01` que o `catalog-title` renova ao abrir.
+- [ ] Upsert de `entries` com `ignoreDuplicates` devolve só as linhas inseridas (é como o app conta `titles_new`); `patchEntries` passa pela policy de update.
+- [ ] `imports` → `done` com `titles_new > 0` cria **um** evento `imported` no feed; reimportar o mesmo arquivo (hash igual) não cria outro.
+- [ ] `import_candidates` com `on_conflict=user_id,raw_name` ignora os repetidos; a fila (`resolved_at is null and not skipped`) some ao resolver/pular; resolver grava a entrada.
+- [ ] Log da função numa importação real: `{fn: import-match, …, upstream_calls: N, items, high, medium, low}` por lote e o tempo por lote de 100.
 
 ## Para as próximas fases (já dá para adiantar)
 

@@ -4,7 +4,7 @@ import type { AccountAdmin, CatalogDb } from "../_shared/supabase.ts";
 import type { Counter } from "../_shared/log.ts";
 import type { MotnClient } from "../_shared/motn.ts";
 import type { Json, TmdbClient } from "../_shared/tmdb.ts";
-import type { AuthUser, AvailabilityRow, HomeSectionRow, MediaType, OfferType, ProviderRow, SyncRow, TitleInput, TitleRow } from "../_shared/types.ts";
+import type { AuthUser, AvailabilityRow, HomeSectionRow, MediaType, OfferType, ProviderRow, SyncRow, TitleInput, TitleRow, TitleSketch } from "../_shared/types.ts";
 
 export const user: AuthUser = { id: "00000000-0000-4000-8000-000000000001", email: "a@teste.local" };
 export const requireUserOk = (_req: Request) => Promise.resolve(user);
@@ -117,6 +117,24 @@ export class FakeDb implements CatalogDb {
       else this.home.push({ ...r });
     }
     return Promise.resolve();
+  }
+  ensureTitleSketches(rows: TitleSketch[]) {
+    const out: Array<Pick<TitleRow, "id" | "tmdb_id" | "media_type">> = [];
+    for (const r of rows) {
+      let t = this.titles.find((x) => x.tmdb_id === r.tmdb_id && x.media_type === r.media_type);
+      if (!t) {
+        t = {
+          ...r,
+          id: `t-${this.seq++}`,
+          runtime_minutes: null, episode_run_time: null, number_of_seasons: null, number_of_episodes: null,
+          seasons: null, cast_top: null, status: null, imdb_id: null, genres: [],
+          fetched_at: "1970-01-01T00:00:00.000Z",
+        };
+        this.titles.push(t);
+      }
+      if (!out.some((o) => o.id === t!.id)) out.push({ id: t.id, tmdb_id: t.tmdb_id, media_type: t.media_type });
+    }
+    return Promise.resolve(out);
   }
 }
 

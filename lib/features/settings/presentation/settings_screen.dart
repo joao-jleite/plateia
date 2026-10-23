@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../auth/presentation/auth_providers.dart';
+import '../../import_netflix/presentation/import_providers.dart';
 import '../../onboarding/presentation/my_profile_provider.dart';
 import '../data/account_repository.dart';
 
@@ -19,6 +20,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final profile = ref.watch(myProfileProvider).value;
+    final pendingReview = ref.watch(pendingReviewCountProvider).value ?? 0;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Configurações')),
@@ -48,6 +50,16 @@ class SettingsScreen extends ConsumerWidget {
                       }
                     }));
                   },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.upload_file_outlined),
+            title: const Text('Importar histórico da Netflix'),
+            subtitle: Text(pendingReview > 0
+                ? (pendingReview == 1 ? '1 título aguarda revisão' : '$pendingReview títulos aguardam revisão')
+                : 'O CSV que a Netflix deixa baixar vira seu diário'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.import),
           ),
           const Divider(),
           ListTile(

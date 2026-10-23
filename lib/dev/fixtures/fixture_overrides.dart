@@ -4,12 +4,15 @@ import '../../features/auth/presentation/auth_providers.dart';
 import '../../features/catalog/data/catalog_repository.dart';
 import '../../features/catalog/presentation/catalog_providers.dart';
 import '../../features/diary/presentation/diary_providers.dart';
+import '../../features/import_netflix/presentation/import_providers.dart';
 import '../../features/lists/presentation/lists_providers.dart';
 import '../../features/onboarding/presentation/my_profile_provider.dart';
 import '../../features/settings/data/account_repository.dart';
 import 'fixture_auth_repository.dart';
 import 'fixture_catalog_repository.dart';
 import 'fixture_diary.dart';
+import 'fixture_import_repository.dart';
+import 'fixture_netflix_csv.dart';
 
 /// Troca os repositórios do Supabase pelos de amostra. Usado por `main.dart`
 /// com `--dart-define=BACKEND=fixtures` (nunca em release) e pelos testes de
@@ -19,13 +22,18 @@ List<Override> fixtureOverrides({
   FixtureAuthRepository? auth,
   CatalogRepository? catalog,
   FixtureDiaryStore? diary,
+  FixtureImportRepository? imports,
   bool failWrites = false,
   Duration latency = const Duration(milliseconds: 250),
 }) {
   final authRepo = auth ?? FixtureAuthRepository(latency: latency);
   final catalogRepo = catalog ?? FixtureCatalogRepository(latency: latency);
   final store = diary ?? FixtureDiaryStore();
+  final importRepo = imports ?? FixtureImportRepository(store, authRepo, latency: latency, failWrites: failWrites);
   return [
+    importRepositoryProvider.overrideWith((ref) => importRepo),
+    // botão "Usar CSV de exemplo" na tela de importar (só com fixtures)
+    sampleCsvProvider.overrideWith((ref) => sampleNetflixCsvBytes()),
     authRepositoryProvider.overrideWith((ref) => authRepo),
     catalogRepositoryProvider.overrideWith((ref) => catalogRepo),
     profileRepositoryProvider.overrideWith((ref) => FixtureProfileRepository(authRepo, store, latency: latency)),

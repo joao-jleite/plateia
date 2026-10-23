@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:watchlog/features/onboarding/presentation/import_placeholder_screen.dart';
+import 'package:watchlog/features/import_netflix/presentation/import_screen.dart';
 import 'package:watchlog/features/onboarding/presentation/my_profile_provider.dart';
 import 'package:watchlog/features/onboarding/presentation/username_screen.dart';
 
@@ -16,7 +16,7 @@ void main() {
         holder.capture(context);
         return const UsernameScreen();
       }),
-      routes: {'/onboarding/import': (_) => const ImportPlaceholderScreen()},
+      routes: {'/onboarding/import': (_) => const ImportScreen(onboarding: true)},
     );
     await tester.pumpAndSettle();
 
@@ -35,7 +35,7 @@ void main() {
 
     await tester.tap(find.text('Continuar'));
     await tester.pumpAndSettle();
-    expect(find.byType(ImportPlaceholderScreen), findsOneWidget);
+    expect(find.byType(ImportScreen), findsOneWidget);
     expect(holder.container.read(myProfileProvider).value?.username, 'camila_27');
 
     // "Agora não" fecha o onboarding.

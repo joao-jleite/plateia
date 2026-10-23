@@ -68,6 +68,10 @@ class SupabaseEntriesRepository implements EntriesRepository {
             'current_episode': d.currentEpisode,
             'episodes_watched': d.episodesWatched,
             'watch_count': d.watchCount,
+            // Editar à mão "reivindica" o registro: a importação da Netflix
+            // passa a só preencher o que estiver vazio (merge.dart) e o
+            // trigger do feed volta a registrar nota/review deste título.
+            'source': 'manual',
           }, onConflict: 'user_id,title_id')
           .select(_select)
           .single();

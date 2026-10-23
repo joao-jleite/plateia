@@ -10,8 +10,9 @@ import '../../features/auth/presentation/reset_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/feed/presentation/feed_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/import_netflix/presentation/import_review_screen.dart';
+import '../../features/import_netflix/presentation/import_screen.dart';
 import '../../features/lists/presentation/list_screen.dart';
-import '../../features/onboarding/presentation/import_placeholder_screen.dart';
 import '../../features/onboarding/presentation/my_profile_provider.dart';
 import '../../features/onboarding/presentation/username_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -61,10 +62,15 @@ GoRouter appRouter(Ref ref) {
       GoRoute(path: Routes.reset, builder: (_, _) => const ResetScreen()),
       GoRoute(path: Routes.newPassword, builder: (_, _) => const NewPasswordScreen()),
       GoRoute(path: Routes.onboardingUsername, builder: (_, _) => const UsernameScreen()),
-      GoRoute(path: Routes.onboardingImport, builder: (_, _) => const ImportPlaceholderScreen()),
+      GoRoute(path: Routes.onboardingImport, builder: (_, _) => const ImportScreen(onboarding: true)),
       GoRoute(path: Routes.settings, builder: (_, _) => const SettingsScreen()),
       GoRoute(path: Routes.editProfile, builder: (_, _) => const EditProfileScreen()),
       GoRoute(path: Routes.about, builder: (_, _) => const AboutScreen()),
+
+      // Importar a Netflix pelo perfil e revisar os duvidosos: por cima da aba
+      // atual (voltar devolve a quem chamou: configurações ou o resumo).
+      GoRoute(path: Routes.import, parentNavigatorKey: rootNavigatorKey, builder: (_, _) => const ImportScreen()),
+      GoRoute(path: Routes.importReview, parentNavigatorKey: rootNavigatorKey, builder: (_, _) => const ImportReviewScreen()),
 
       // Perfil de outra pessoa, estatísticas e lista: por cima da aba atual,
       // como o detalhe do título (o meu perfil é a aba `/profile`).

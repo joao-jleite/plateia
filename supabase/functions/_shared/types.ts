@@ -106,3 +106,23 @@ export interface AuthUser {
   id: string;
   email: string | null;
 }
+
+/// Linha-esboço de `titles` que o `import-match` cria para cada candidato
+/// (só o que o /search devolve; `fetched_at = 1970` faz o `catalog-title`
+/// renovar ao abrir). Nunca sobrescreve um título já completo.
+export type TitleSketch = Pick<
+  TitleRow,
+  "tmdb_id" | "media_type" | "title" | "original_title" | "overview" | "poster_path" | "backdrop_path"
+  | "release_date" | "genre_ids" | "is_anime" | "origin_country" | "original_language" | "vote_average" | "popularity"
+>;
+
+/// Candidato devolvido ao app pelo `import-match` (docs/ARQUITETURA.md §9).
+export interface ImportCandidate {
+  title_id: string;
+  tmdb_id: number;
+  media_type: MediaType;
+  title: string;
+  year: number | null;
+  poster_path: string | null;
+  score: number;
+}

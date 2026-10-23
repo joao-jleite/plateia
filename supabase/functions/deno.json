@@ -7,7 +7,7 @@
   "lock": false,
   "nodeModulesDir": "none",
   "tasks": {
-    "check": "deno check catalog-search/index.ts catalog-title/index.ts home-sections/index.ts providers-sync/index.ts account-delete/index.ts",
+    "check": "deno check catalog-search/index.ts catalog-title/index.ts home-sections/index.ts import-match/index.ts providers-sync/index.ts account-delete/index.ts",
     "test": "deno test --allow-env tests/"
   }
 }

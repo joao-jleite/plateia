@@ -223,7 +223,7 @@ final class MyListsProvider
   MyLists create() => MyLists();
 }
 
-String _$myListsHash() => r'6c7b22ef43b5212fad4ab4f09c13fe294e005541';
+String _$myListsHash() => r'8b93d08fd7e07966337aa5baf293b4fdf0ca432b';
 
 /// Minhas listas, com criar/editar/apagar otimistas. Métodos devolvem a
 /// mensagem de erro (null = deu certo), como no diário.
@@ -374,7 +374,7 @@ final class ListItemsProvider
   }
 }
 
-String _$listItemsHash() => r'a85dd54ba19efdb28468d64da4153e59ed29358d';
+String _$listItemsHash() => r'2aa121babde44fe297ce26645974f998f005aee5';
 
 /// Itens de uma lista, com remover e arrastar otimistas.
 

@@ -17,6 +17,7 @@ import type {
   SyncRow,
   TitleInput,
   TitleRow,
+  TitleSketch,
 } from "./types.ts";
 
 /// Cliente com o JWT do usuário: só para `auth.getUser()`.
@@ -65,6 +66,9 @@ export interface CatalogDb {
   consumeQuota(api: "tmdb" | "motn", cap: number): Promise<boolean>;
   getHomeSections(region: string): Promise<HomeSectionRow[]>;
   upsertHomeSections(rows: HomeSectionRow[]): Promise<void>;
+  /// import-match: garante uma linha por (tmdb_id, media_type) sem tocar nas
+  /// que já existem (um título completo não vira esboço). Devolve os ids.
+  ensureTitleSketches(rows: TitleSketch[]): Promise<Array<Pick<TitleRow, "id" | "tmdb_id" | "media_type">>>;
 }
 
 export class SupabaseCatalogDb implements CatalogDb {
@@ -188,7 +192,26 @@ export class SupabaseCatalogDb implements CatalogDb {
     const { error } = await this.db.from("home_sections").upsert(rows, { onConflict: "key" });
     if (error) this.fail("gravar home_sections", error);
   }
+
+  async ensureTitleSketches(rows: TitleSketch[]): Promise<Array<Pick<TitleRow, "id" | "tmdb_id" | "media_type">>> {
+    if (rows.length === 0) return [];
+    // ignoreDuplicates = `on conflict do nothing`: quem já existe fica como está.
+    const ins = await this.db
+      .from("titles")
+      .upsert(rows.map((r) => ({ ...r, fetched_at: SKETCH_FETCHED_AT })), { onConflict: "tmdb_id,media_type", ignoreDuplicates: true });
+    if (ins.error) this.fail("criar esboços em titles", ins.error);
+    const ids = [...new Set(rows.map((r) => r.tmdb_id))];
+    const { data, error } = await this.db.from("titles").select("id,tmdb_id,media_type").in("tmdb_id", ids);
+    if (error) this.fail("ler esboços de titles", error);
+    const wanted = new Set(rows.map((r) => `${r.tmdb_id}:${r.media_type}`));
+    return ((data ?? []) as Array<Pick<TitleRow, "id" | "tmdb_id" | "media_type">>)
+      .filter((t) => wanted.has(`${t.tmdb_id}:${t.media_type}`));
+  }
 }
+
+/// `fetched_at` dos esboços: vencido desde sempre, para o `catalog-title`
+/// buscar o detalhe completo na primeira abertura.
+export const SKETCH_FETCHED_AT = "1970-01-01T00:00:00.000Z";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Conta (account-delete)

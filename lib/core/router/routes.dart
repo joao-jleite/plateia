@@ -22,6 +22,10 @@ abstract final class Routes {
   static const editProfile = '/settings/profile';
   static const about = '/settings/about';
 
+  /// Importar a Netflix pelo perfil (fase 05) e revisar os duvidosos.
+  static const import = '/import';
+  static const importReview = '/import/review';
+
   static String title(MediaType type, int tmdbId) => '/title/${type.path}/$tmdbId';
 
   /// Perfil de alguém pelo @ (o meu é a aba `/profile`).

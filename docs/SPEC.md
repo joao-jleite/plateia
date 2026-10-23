@@ -135,7 +135,8 @@ Até a fase 06 a aba Feed mostra um estado vazio "em breve"; até a 07, a aba As
 - Arquivo `NetflixViewingHistory.csv` (`Title,Date`) ou `ViewingActivity.csv` da exportação completa. Formato em `docs/decisoes-apis.md`.
 - O CSV é lido **no aparelho** (isolate), agrupado por série/filme pelos padrões `: Temporada N:`, `: Parte N:`, `: Minissérie:`, arco nomeado; data D/M vs M/D decidida pelo conjunto. Só os **nomes agrupados** vão para o servidor; o arquivo não é enviado nem guardado. Fica em `imports` apenas o resumo e o hash do arquivo (para avisar "você já importou este arquivo em DD/MM").
 - Confiança do casamento: **alta** entra direto como `watched` (data = última reprodução; `episodes_watched` = linhas da série); **média/baixa** vai para `import_candidates` com 2–3 opções. Meta da fase 05: ≥ 90% automático no CSV real.
-- Idempotente: unique (usuário, título) + regra de não sobrescrever o que foi editado à mão. Importar duas vezes não duplica nem gera dois eventos de feed.
+- Idempotente: unique (usuário, título) + regra de não sobrescrever o que foi editado à mão (fase 05: registro ainda `netflix_import` avança data e episódios; registro `manual` só ganha o que estava vazio; status diferente de "assisti", nota, review e reassistir nunca mudam; editar à mão marca `source = manual`). Importar duas vezes não duplica nem gera dois eventos de feed (o evento `imported` exige título novo, `imports.titles_new > 0`), e um nome já revisado ou pulado não volta à fila (unique por usuário e nome).
+- `ViewingActivity.csv` (exportação completa): linhas com `Supplemental Video Type` (trailer, prévia, resumo) e com menos de 2 min não contam; com mais de um perfil, a pessoa escolhe o dela. Filme repetido em dias diferentes conta uma vez (`watch_count` fica 1).
 - Trailers e extras que apareçam como título normal: se não casarem, caem na revisão e a pessoa pula.
 
 ### 5.9 Qual assinar
