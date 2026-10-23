@@ -87,7 +87,7 @@ final class MyProfileProvider
   MyProfile create() => MyProfile();
 }
 
-String _$myProfileHash() => r'c93fdc5a2633b2a681173ad17699f18810e50e97';
+String _$myProfileHash() => r'd6a81081a9d4ce94000fbbfa0e4b87c8a80a26f7';
 
 /// Perfil do usuário logado. `null` sem sessão. Alimenta o `redirect` do
 /// router (onboarding feito?) e o cartão da aba Perfil.

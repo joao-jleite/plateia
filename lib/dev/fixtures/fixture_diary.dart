@@ -607,12 +607,13 @@ class FixtureProfileRepository implements ProfileRepository {
   }
 
   @override
-  Future<Profile> saveUsername(String username, {String? displayName}) async {
+  Future<Profile> saveUsername(String username, {String? displayName, bool acceptTerms = false}) async {
     await Future<void>.delayed(latency);
     if (taken.contains(username) && username != _current.username) throw const AppException('taken', 'Esse @ já está em uso.');
     return _save(_current.copyWith(
       username: username,
       displayName: (displayName == null || displayName.trim().isEmpty) ? _current.displayName : displayName.trim(),
+      termsAcceptedAt: acceptTerms ? DateTime.now() : _current.termsAcceptedAt,
     ));
   }
 

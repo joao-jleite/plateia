@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/branding/plateia_mark.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/widgets/legal_links.dart';
 import 'auth_form_helpers.dart';
 import 'auth_providers.dart';
 
@@ -43,14 +45,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final theme = Theme.of(context);
 
     return AuthScaffold(
-      title: 'Entrar',
+      title: '',
       showBack: false,
       children: [
-        Text('Plateia', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold)),
+        const Align(alignment: Alignment.centerLeft, child: PlateiaMark(size: 64, withBackground: true)),
+        const SizedBox(height: 16),
+        Text('Plateia', style: theme.textTheme.displaySmall),
         const SizedBox(height: 4),
         Text(
           'O que você assiste, onde está no Brasil e o que seus amigos acham.',
-          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 28),
         Form(
@@ -106,6 +110,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onPressed: busy ? null : () => context.push(Routes.signup),
           child: const Text('Criar conta'),
         ),
+        const SizedBox(height: 8),
+        // Quem entra pelo Google não passa pela tela de cadastro: o aviso vale
+        // para os dois caminhos (o aceite explícito fica no passo 1 do onboarding).
+        const LegalNotice(prefix: 'Ao continuar, você concorda com os '),
         // Só com BACKEND=fixtures: entrar como um dos perfis de amostra para
         // demonstrar as duas pontas da rede social (fase 06).
         if (fixtureLogin != null) ...[

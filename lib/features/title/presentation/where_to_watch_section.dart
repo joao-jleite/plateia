@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/tmdb_images.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/widgets/poster_image.dart';
+import '../../../core/widgets/tmdb_badge.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../domain/watch_action.dart';
 import 'streaming_launcher.dart';
@@ -63,10 +64,19 @@ class WhereToWatchSection extends ConsumerWidget {
             ),
           ),
         const SizedBox(height: 8),
-        // Atribuição obrigatória (termos do TMDB e da JustWatch).
-        Text(
-          'Onde assistir: dados da JustWatch via TMDB',
-          style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline),
+        // Atribuição obrigatória (termos do TMDB e da JustWatch): logo do TMDB
+        // quando o arquivo existir, senão o selo de texto.
+        Row(
+          children: [
+            const TmdbBadge(height: 12),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Onde assistir: dados da JustWatch via TMDB',
+                style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline),
+              ),
+            ),
+          ],
         ),
       ],
     );

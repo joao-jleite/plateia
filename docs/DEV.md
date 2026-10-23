@@ -1,4 +1,4 @@
-# Como rodar · Plateia (fases 03–07)
+# Como rodar · Plateia (fases 03–08)
 
 Tudo no PowerShell, na raiz do repo. Flutter 3.44.8, Node ≥ 20, Deno 2 (`npm i -g deno`), Supabase CLI.
 
@@ -27,6 +27,8 @@ Fase 06 (rede social): a tela de login ganhou "Entrar como (dados de amostra)" c
 
 Fase 07 (qual assinar): a aba **Assinar** (`/subscribe`) calcula a recomendação com o diário de amostra (o usuário por e-mail tem 8 "quero ver" + One Piece assistindo: HBO Max resolve 3, Netflix 2, Crunchyroll/Apple TV+/Paramount+ 1; `Furiosa` só aluguel; `Bebê Rena` entrou "sem dados" e passa a contar depois que o detalhe dele é aberto, como `title_sync` no banco). Entrando como `@foxer`, os títulos dos amigos entram com peso 0,3 (The Last of Us da @camila e Duna 2 do @vini, ambos na HBO Max) e desempatam contra a Netflix. Preços em `FixturePrices` (`lib/dev/fixtures/fixture_data.dart`, espelho do seed, todos "estimativa"; o do Paramount+ é de 01/08 de propósito, para mostrar o aviso de preço velho). **Meus streamings** (`/subscribe/mine`, também em Perfil → ⚙): quem entra já assina Netflix (renova em 10 dias) e mais um (Prime Video; o foxer, Crunchyroll); marcar/editar abre a folha (plano, preço que paga, data, lembrete) e grava otimista com Desfazer. O lembrete é `flutter_local_notifications` de verdade no emulador: o sino na barra ("Testar lembrete") dispara uma notificação na hora (pede `POST_NOTIFICATIONS` no Android 13+), e uma renovação marcada para daqui a menos de 3 dias agenda o lembrete para 1 minuto depois (`adb shell dumpsys alarm | grep watchlog` lista os alarmes). Nos testes de widget o agendador é `RecordingReminderScheduler` (`pumpScreen(..., scheduler: …)`) e o relógio da janela de 30 dias é fixado por `clockProvider.overrideWithValue(() => DateTime(2026, 10, 23))`. A função pura é `recommend()` em `lib/features/subscribe/domain/recommender.dart`; a conta à mão está em `test/features/subscribe/domain/recommender_test.dart`.
 
+Fase 08 (polimento e release): tema escuro "Sala escura" (`lib/core/theme/app_theme.dart`, `docs/DESIGN.md`) com Fraunces + Manrope pelo `google_fonts` (baixadas na primeira abertura com rede; nos testes `AppTheme.dark(withGoogleFonts: false)`). Marca em `lib/core/branding/plateia_mark.dart`; ícone, splash e SVG saem de `flutter test tool/branding/render_branding_test.dart` → `dart run flutter_launcher_icons` → `dart run flutter_native_splash:create`. Skeletons em `lib/core/widgets/skeletons.dart` (`AsyncView(loading: …)`); `BackOrHomeButton` nas telas que podem ser raiz por deep link (perfil, título, atividade, lista). Preferências locais via `preferencesProvider` (`shared_preferences` no app, `MemoryPreferences` no `pumpScreen`). Onboarding com `OnboardingHeader` (3 passos) e a caixa de termos obrigatória no passo 1 (`terms_accepted_at`, migração `0006`). Logo do TMDB: salve `assets/tmdb/logo.svg` e o `TmdbBadge` passa a mostrá-lo. Release: `android/key.properties` (modelo `key.properties.example`); sem ele o release sai com a chave de debug e o Gradle avisa (o `flutter build` esconde o aviso: confira com `apksigner verify --print-certs`). Checklist da Play em `docs/RELEASE.md`; páginas públicas em `docs/site/`.
+
 Ensaio com um CSV real, sem servidor (só a metade que roda no aparelho): `dart run tool/import_dry_run.dart research/NetflixViewingHistory.csv [--profile "Nome"] [--names]`.
 
 ### Com o projeto Supabase
@@ -35,21 +37,22 @@ Ensaio com um CSV real, sem servidor (só a metade que roda no aparelho): `dart 
 flutter run --dart-define=SUPABASE_URL=https://<ref>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon ou publishable key> --dart-define=GOOGLE_WEB_CLIENT_ID=<client id web>
 ```
 
-Sem `SUPABASE_URL`/`SUPABASE_ANON_KEY` o app abre numa tela "configuração ausente" explicando o que falta. Sem `GOOGLE_WEB_CLIENT_ID` o botão do Google mostra erro e o resto funciona.
+Sem `SUPABASE_URL`/`SUPABASE_ANON_KEY` o app abre na tela "Este build não está configurado" explicando o que falta (também em release; captura em `docs/capturas/fase08/release-sem-config.png`). Sem `GOOGLE_WEB_CLIENT_ID` o botão do Google mostra erro e o resto funciona.
 
 ### APK
 
 ```powershell
-flutter build apk --release --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=… --dart-define=GOOGLE_WEB_CLIENT_ID=…   # produto
-flutter build apk --profile --dart-define=BACKEND=fixtures                                                                     # demonstração (é o plateia-fase07.apk)
+flutter build apk --release --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=… --dart-define=GOOGLE_WEB_CLIENT_ID=…         # APK de teste no celular
+flutter build appbundle --release --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=… --dart-define=GOOGLE_WEB_CLIENT_ID=…   # AAB para a Play
+flutter build apk --profile --dart-define=BACKEND=fixtures                                                                           # demonstração (é o plateia-fase08.apk)
 ```
 
-Saída em `build/app/outputs/flutter-apk/`. O mais novo vai para a Área de Trabalho; os antigos para `dist/` (fora do git).
+Saída em `build/app/outputs/flutter-apk/` e `build/app/outputs/bundle/release/`. O mais novo vai para a Área de Trabalho; os antigos para `dist/` (fora do git). Tempo de abertura: `flutter run --profile --trace-startup --dart-define=BACKEND=fixtures -d emulator-5554` grava `build/start_up_info.json` (número da fase 08 na seção Decisões do `CLAUDE.md`).
 
 ## Banco
 
 ```powershell
-npm run db:test              # Postgres 17 local: migrações 0001–0005 + checagem de RLS + tools/db/tests/*.sql (6 arquivos, ~8 s)
+npm run db:test              # Postgres 17 local: migrações 0001–0006 + checagem de RLS + tools/db/tests/*.sql (7 arquivos, ~7 s)
 npm run db:test:keep         # idem, deixa o banco de pé em localhost:54329 até apertar Enter
 npm run db:seed-dev:local    # com o banco de pé: 3 contas de teste + diários + follows no Postgres local (ensaio do seed)
 npm run db:seed-dev:dry      # só imprime o plano do seed

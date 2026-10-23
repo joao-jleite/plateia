@@ -18,11 +18,15 @@ abstract class Profile with _$Profile {
     @Default('BR') String region,
     DateTime? onboardedAt,
     DateTime? createdAt,
+    /// Aceite dos termos e da política (migração 0006, passo 1 do onboarding).
+    DateTime? termsAcceptedAt,
   }) = _Profile;
 
   factory Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
 
   bool get isOnboarded => onboardedAt != null;
+
+  bool get hasAcceptedTerms => termsAcceptedAt != null;
 
   /// O trigger cria `u_` + 10 hex do id; o onboarding pede a troca.
   bool get hasProvisionalUsername => RegExp(r'^u_[0-9a-f]{10}$').hasMatch(username);

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/errors/app_exception.dart';
+import '../../../core/prefs/preferences.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/supabase/supabase_providers.dart';
 import '../../../core/utils/clock.dart';
@@ -31,14 +32,18 @@ SubscribeRepository subscribeRepository(Ref ref) =>
 ReminderScheduler reminderScheduler(Ref ref) =>
     LocalReminderScheduler(onTap: (route) => ref.read(appRouterProvider).push(route));
 
-/// Chave "aceito plano com anúncios" (SPEC §5.9). Vive enquanto o app vive:
-/// ainda não há preferência local persistida (decisão da fase 07, ▶).
+/// Chave "aceito plano com anúncios" (SPEC §5.9), persistida no aparelho
+/// (`shared_preferences`, fase 08): sobrevive a fechar o app.
 @Riverpod(keepAlive: true)
 class AcceptAds extends _$AcceptAds {
   @override
-  bool build() => false;
+  bool build() => ref.watch(preferencesProvider).getBool(PrefKeys.acceptAds) ?? false;
 
-  void set(bool value) => state = value;
+  void set(bool value) {
+    state = value;
+    // gravação em segundo plano; se falhar, a chave volta ao valor antigo na próxima abertura
+    unawaited(ref.read(preferencesProvider).setBool(PrefKeys.acceptAds, value));
+  }
 }
 
 /// Sobe a cada gravação em `user_subscriptions`; a recomendação observa.

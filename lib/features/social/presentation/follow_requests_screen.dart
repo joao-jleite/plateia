@@ -50,7 +50,7 @@ class FollowRequestsScreen extends ConsumerWidget {
                 children: [
                   FilledButton(
                     key: Key('accept-${r.follower.id}'),
-                    // minimumSize 0: o tema dá largura infinita ao FilledButton, que num Row estoura
+                    // botão curto dentro de Row: largura mínima 0 e altura 36
                     style: FilledButton.styleFrom(visualDensity: VisualDensity.compact, minimumSize: const Size(0, 36)),
                     onPressed: () => unawaited(resolve(r, accept: true)),
                     child: const Text('Aceitar'),

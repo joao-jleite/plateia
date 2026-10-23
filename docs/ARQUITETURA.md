@@ -33,7 +33,8 @@ Regras fixas: chave de API só nos secrets das Edge Functions; o app fala com o 
 | Nome visível (`android:label`) | Plateia | Só um rótulo; muda sem consequência. |
 | Scheme de deep link (OAuth, reset de senha) | `io.github.joaojleite.watchlog://login-callback` | Mesmo prefixo do pacote; configurado em `supabase/config.toml` (`additional_redirect_urls`) e no dashboard do Supabase. |
 | `minSdk` / `targetSdk` | 24 / o mais novo do SDK instalado | Android 7+ cobre praticamente toda a base ativa e simplifica App Links e notificações locais. |
-| Links de convite | `https://joao-jleite.github.io/...` (depois) | Sem domínio próprio, App Links verificados ficam para quando houver; no MVP o link abre o site estático e o app por scheme. |
+| Links de convite | `https://joao-jleite.github.io/plateia/u/<username>` | Sem domínio próprio. Fase 08: `docs/site/` tem a página do convite (`404.html`/`u/`) e o modelo `.well-known/assetlinks.json`; com o SHA-256 da chave da Play publicado e `autoVerify` no manifesto, o link abre direto no app. Páginas legais na mesma base (`Legal.siteBase`). |
+| Ícone, splash, tema | `assets/branding/`, `flutter_launcher_icons`, `flutter_native_splash`, `AppTheme` escuro | Fase 08, `docs/DESIGN.md` (direção A, "Sala escura"). |
 
 ## 3. Stack e versões
 
@@ -255,7 +256,7 @@ Limites do stub: não há GoTrue, PostgREST nem API de Storage; o que se testa �
 
 - Local: `npm run db:test` **antes de qualquer push**.
 - Dev (quando o João criar o projeto em `sa-east-1`): `supabase link --project-ref <ref>` uma vez; `supabase db push` aplica o que falta e registra em `supabase_migrations.schema_migrations`. Se a `0002_storage_avatars.sql` falhar por permissão em `storage.objects`, rodar o arquivo no SQL Editor e `supabase migration repair --status applied 0002`.
-- Produção: o projeto de dev vira produção no lançamento (dev solo, um projeto); um segundo projeto só se houver dado de usuário real a proteger (fase 08 decide).
+- Produção: **decidido na fase 08** — o projeto de dev vira produção no lançamento (dev solo, um projeto); um segundo projeto só se houver dado de usuário real a proteger; nesse dia o app troca de URL pelo `--dart-define` e o banco novo nasce do `supabase db push` das mesmas migrações.
 - Nunca editar migração aplicada; criar `000N_<tema>.sql`. "Enums" são `text + check` para evoluir com `alter table … drop constraint / add constraint`.
 - Seeds de referência (`providers`, `provider_prices`) moram na migração; correções por nova migração ou pelo dashboard (preços).
 - Config do Auth (redirect URLs, Google) no dashboard e espelhada em `supabase/config.toml`; `supabase config push` sincroniza quando o CLI suportar o campo.
@@ -263,7 +264,7 @@ Limites do stub: não há GoTrue, PostgREST nem API de Storage; o que se testa �
 ## 15. Observabilidade mínima
 - Logs das Edge Functions no dashboard; cada função loga `{fn, user, ms, upstream_calls}` em uma linha.
 - `api_usage` responde "quanto da cota já foi" (consulta no dashboard).
-- Crash do app: só na fase 08, se houver opção gratuita e leve; caso contrário, `FlutterError.onError` → log local.
+- Crash do app (fase 08): `FlutterError.onError` + `PlatformDispatcher.onError` → `[crash] …` no logcat, inclusive em release. Sentry (plano grátis) fica como pendência porque exige conta do João; o gancho está em `docs/RELEASE.md` §7.
 
 ## 16. O que foi considerado e descartado
 - Bloc / Provider / GetX (§5); auto_route (§6).

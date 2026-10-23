@@ -40,7 +40,8 @@ class AuthScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title), automaticallyImplyLeading: showBack),
+      // login: sem barra (a marca e o nome já abrem a tela); as outras têm título e seta
+      appBar: title.isEmpty && !showBack ? null : AppBar(title: Text(title), automaticallyImplyLeading: showBack),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

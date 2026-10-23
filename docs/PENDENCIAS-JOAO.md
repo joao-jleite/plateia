@@ -2,6 +2,30 @@
 
 Tudo o que só você pode fazer (contas, chaves, celular, dinheiro). Cada fase acrescenta aqui; marque `[x]` quando fizer. Chaves vão em `research/.env` (fase 01) ou em `supabase secrets set` (fase 03+), nunca no chat.
 
+## Ordem recomendada para o João (do zero ao teste interno)
+
+As 8 fases estão prontas e testadas sem um projeto Supabase real. Esta é a sequência para sair disso e chegar ao app rodando no seu celular contra o Supabase e publicado em teste interno na Play. Tempo total: **~4 h de trabalho seu**, espalhadas por alguns dias por causa das verificações do Google. Os detalhes de cada passo estão nas seções por fase, abaixo.
+
+| # | Passo | Onde está o detalhe | Tempo | Depende de |
+|---|---|---|---|---|
+| 1 | Chave do TMDB e chave da Streaming Availability (RapidAPI) | Fase 01 | 15 min | – |
+| 2 | Criar o projeto Supabase (`sa-east-1`), `.env`, `supabase login` + `link`, Redirect URL | Fase 02 / Fase 03 passo 1 | 15 min | – |
+| 3 | `npm run db:test` (7/7) e `supabase db push` (migrações 0001–0006) | Fase 03 passo 2 (+ 0003–0006 das fases 04–08) | 10 min | 2 |
+| 4 | `supabase secrets set` e deploy das 6 funções (`--use-api`) | Fase 03 passos 3–4, Fase 05 passo 3 | 15 min | 1, 2 |
+| 5 | Auth por e-mail (desligar "Confirm email" no dev) | Fase 03 passo 5 | 5 min | 2 |
+| 6 | Rodar o app contra o projeto (`flutter run --dart-define=…`), cadastrar, buscar "One Piece", abrir na Netflix, registrar, importar o CSV real, aba Assinar | Fases 03–07 ("O que você roda") | 45 min | 3, 4, 5 |
+| 7 | Me mandar "verifica as fases 03 a 07" com os logs/capturas | Fases 03–07 ("O que eu verifico") | 10 min | 6 |
+| 8 | Login Google: clientes OAuth Web + Android (SHA-1 de debug), ligar no Supabase | Fase 03 passo 6 | 20 min | 2 |
+| 9 | Keystore de release + `android/key.properties`; depois adicionar o SHA-1 dela no cliente Android do passo 8 | Fase 08 item 2 | 10 min | – |
+| 10 | Publicar `docs/site/` no GitHub Pages (`joao-jleite/plateia`) | Fase 08 item 3 | 15 min | – |
+| 11 | Logo do TMDB em `assets/tmdb/logo.svg` | Fase 03 passo 8 | 2 min | – |
+| 12 | Conta do Google Play Console (US$ 25 + verificação de identidade, que pode levar dias: **comece cedo**) | Fase 08 item 1 | 20 min + espera | – |
+| 13 | `flutter build appbundle --release --dart-define=…` e teste interno no Console (ficha, classificação, Segurança dos dados: `docs/RELEASE.md`) | Fase 08 item 4 + `docs/RELEASE.md` | 60 min | 9, 10, 12 |
+| 14 | Instalar pelo link do teste interno no seu celular e rodar o roteiro da segunda conta (seed `npm run db:seed-dev`) | Fase 06 passos 2–3, Fase 07 passo 4 | 30 min | 13 |
+| 15 | Conferir os preços em `provider_prices` e marcar `is_estimate = false` | Fase 07 passo 1 | 20 min | 3 |
+
+Só quando for cobrar ou anunciar (não é agora): licença comercial do TMDB e Starter da Streaming Availability (Fase 08 item 5).
+
 ## Fase 01 · Validar APIs
 
 - [ ] **Chave do TMDB** (grátis, ~5 min). Destrava os números do TMDB na tabela de `docs/decisoes-apis.md` e todo o catálogo da fase 03.
@@ -53,8 +77,8 @@ O app, as 5 Edge Functions, os testes e o APK estão prontos, mas **nada foi ver
 - [ ] **1. Projeto Supabase** (item da fase 02, acima): `sa-east-1`, `.env` na raiz com `SUPABASE_URL=` e `SUPABASE_ANON_KEY=` (pode ser a publishable key `sb_publishable_…`), `supabase login` e `supabase link --project-ref <ref>`.
 - [ ] **2. Banco**: no PowerShell, na pasta do projeto:
   ```powershell
-  npm run db:test          # tem que ficar verde (2/2 testes) antes do push
-  supabase db push
+  npm run db:test          # tem que ficar verde (7/7 testes, fases 03–08) antes do push
+  supabase db push         # aplica 0001–0006
   ```
   Se a `0002_storage_avatars.sql` falhar por permissão em `storage.objects`: cole o arquivo no SQL Editor do dashboard e rode `supabase migration repair --status applied 0002`.
 - [ ] **3. Segredos das funções** (as chaves da fase 01; nunca no chat nem no git):
@@ -84,7 +108,7 @@ O app, as 5 Edge Functions, os testes e o APK estão prontos, mas **nada foi ver
   flutter run --dart-define=SUPABASE_URL=https://<ref>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon ou publishable key> --dart-define=GOOGLE_WEB_CLIENT_ID=<client id web>
   ```
   Cadastre-se, escolha o @, busque "One Piece", abra o detalhe e toque em "Abrir na Netflix". Depois me mande "verifica a fase 03" que eu confiro a lista abaixo pelos logs.
-- [ ] **8. Logo do TMDB** (a atribuição exige o logo, não só o texto): baixe o SVG azul em https://www.themoviedb.org/about/logos-attribution e salve como `assets/tmdb/logo.svg`. Eu ligo na tela Sobre e na seção Onde assistir na fase 08 (ou antes, se você pedir).
+- [ ] **8. Logo do TMDB** (a atribuição exige o logo, não só o texto): baixe o SVG azul em https://www.themoviedb.org/about/logos-attribution e salve como `assets/tmdb/logo.svg`. Desde a fase 08 a tela Sobre e a seção Onde assistir detectam o arquivo sozinhas (`TmdbBadge`): basta salvar e gerar o build de novo; sem o arquivo fica o selo de texto "TMDB".
 
 ### O que eu verifico quando o projeto existir (não dá para fazer sem ele)
 
@@ -232,10 +256,53 @@ Recomendador puro (com a lista de 12 títulos e a conta à mão no teste), aba A
 - [ ] Um título importado da Netflix e nunca aberto aparece em "Sem dados" e sai de lá ao abrir o detalhe (o `catalog-title` grava `title_sync`).
 - [ ] Ao trocar de conta no mesmo aparelho, a lista de Meus streamings e os lembretes agendados são da conta nova (`sync()` cancela os da anterior).
 
+## Fase 08 · Polimento e release
+
+Design "Sala escura" aplicado (`docs/DESIGN.md`), ícone e splash próprios, onboarding em 3 passos com aceite dos termos (migração `0006`), estados vazios com ação, skeletons, acessibilidade (rótulos, fonte do sistema até 1,3×), pipeline de release (`key.properties`, R8) provado com assinatura de debug, `docs/RELEASE.md` (checklist da Play), `docs/site/` (privacidade, termos, apagar conta, convite) e `plateia-fase08.apk` (profile + fixtures) na Área de Trabalho. Como nas fases anteriores, **nada rodou contra um projeto Supabase real** e **não existe keystore nem conta da Play**: é o que fica para você, na ordem da tabela do topo.
+
+### O que você faz
+
+- [ ] **1. Conta do Google Play Console** (US$ 25, uma vez): https://play.google.com/console → conta pessoal → pagar → verificação de identidade (documento; pode levar dias). Conta pessoal nova exige teste fechado com 12 testadores por 14 dias antes de produção; o teste interno sai na hora.
+- [ ] **2. Keystore de release** (nunca no git; o `.gitignore` já barra `*.jks` e `android/key.properties`). No PowerShell:
+  ```powershell
+  keytool -genkeypair -v -keystore "$env:USERPROFILE\plateia-release.jks" -alias plateia -keyalg RSA -keysize 2048 -validity 10000
+  ```
+  Responda nome/organização como quiser (CN=Joao Leite, O=Plateia, C=BR). Guarde o `.jks` e as duas senhas no gerenciador de senhas e numa cópia offline (pendrive): perder a keystore de upload é recuperável só por um pedido manual ao suporte da Play. Depois:
+  ```powershell
+  Copy-Item android\key.properties.example android\key.properties   # e preencha storePassword, keyPassword, storeFile
+  flutter build appbundle --release --dart-define=SUPABASE_URL=https://<ref>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon ou publishable> --dart-define=GOOGLE_WEB_CLIENT_ID=<client id web>
+  ```
+  O Gradle **não** pode imprimir `AVISO: android/key.properties não existe` (se imprimir, o AAB saiu com a chave de debug e a Play recusa). SHA-1 da keystore para o cliente OAuth Android (login Google): `keytool -list -v -keystore "$env:USERPROFILE\plateia-release.jks" -alias plateia`. Com Play App Signing, adicione também o SHA-1 **da chave de assinatura do app** que o Console mostra em Configuração → Integridade do app.
+- [ ] **3. Publicar `docs/site/` no GitHub Pages**: crie o repositório público `joao-jleite/plateia`, copie o conteúdo de `docs/site/` para a raiz dele (inclusive `.nojekyll` e `.well-known/`), Settings → Pages → Deploy from a branch → `main` / `/ (root)`. Confira `https://joao-jleite.github.io/plateia/privacidade.html`, `termos.html`, `apagar-conta.html` e um convite `https://joao-jleite.github.io/plateia/u/foxer` (deve mostrar "@foxer convidou você"). Troque o e-mail nas páginas se não quiser o Gmail pessoal exposto. Quando tiver o SHA-256 da chave de assinatura da Play, cole em `.well-known/assetlinks.json` e me avise para ligar o `autoVerify` no manifesto (o convite passa a abrir direto no app).
+- [ ] **4. Teste interno na Play**: Console → criar app (Plateia, pt-BR, app, gratuito) → Teste interno → novo lançamento → enviar o AAB → adicionar seu e-mail (e o do Vini) na lista de testadores → copiar o link. Antes de "revisar lançamento", preencher o que `docs/RELEASE.md` lista: ficha (textos, ícone 512, 2+ capturas), classificação de conteúdo, público 13+, Segurança dos dados (tabela pronta no RELEASE), UGC, URL de privacidade e de exclusão de conta, países = Brasil. Instale pelo link e rode os roteiros das fases 04–07 no seu celular.
+- [ ] **5. Só antes de cobrar ou anunciar**: licença comercial do TMDB (e-mail para `sales@themoviedb.org`, assunto "Commercial API Use", país Brasil, ~US$ 149/mês citado por terceiros) e Starter da Streaming Availability (US$ 49/mês no RapidAPI). O MVP sai grátis e sem anúncio, então isso **não** bloqueia o teste interno nem a produção gratuita.
+- [ ] **6. Monitoramento de crash** (recomendado quando houver gente de fora): Sentry, plano Developer grátis (5 mil erros/mês, sem cartão). Crie a conta em sentry.io, projeto Flutter, copie o DSN e me mande "liga o Sentry": o código é `sentry_flutter` em `main.dart` com `--dart-define=SENTRY_DSN=…` (detalhe em `docs/RELEASE.md` §7). Até lá, os erros vão para o logcat com o prefixo `[crash]`.
+- [ ] **7. Migração 0006 no projeto**: `npm run db:test` (7/7) e `supabase db push`; a `0006_terms.sql` só acrescenta `profiles.terms_accepted_at`. Contas criadas antes dela ficam com `null` e veem a caixa de aceite no passo 1 se voltarem ao onboarding; não bloqueia ninguém que já concluiu.
+- [ ] **8. Fontes**: o app baixa Fraunces e Manrope do Google Fonts na primeira abertura com rede e guarda em cache; sem rede cai no Roboto. Para empacotar as fontes no APK (sem download, abertura idêntica offline), baixe os `.ttf` em https://fonts.google.com (Fraunces e Manrope, pesos 400/600/700), salve em `assets/fonts/` e me avise: eu declaro no `pubspec.yaml` e desligo o download em release (`GoogleFonts.config.allowRuntimeFetching = false`).
+- [ ] **9. Testar no celular**: instale `plateia-fase08.apk` (Área de Trabalho; dados de amostra) e confira ícone, splash, tema escuro, onboarding com "Entrar como @foxer" → sair → criar conta por e-mail (qualquer e-mail, senha de 6+) → os 3 passos; e os estados vazios criando um usuário novo. Me mande o que estranhar.
+
+### Decisões da fase 08 que merecem o seu olhar (▶ também no `CLAUDE.md`)
+
+- ▶ **Direção de design A, "Sala escura"** (preto quente + dourado, Fraunces + Manrope). A B ("Neon de bairro", azul-preto + violeta + ciano) está descrita em `docs/DESIGN.md`; trocar é um arquivo de tema e regenerar ícone/splash.
+- ▶ **Nome na loja: "Plateia"** continua como rótulo. Se quiser outro nome, é `android:label`, os textos e as páginas do site; o pacote não muda.
+- ▶ **Projeto de dev = produção** até existir dado real de usuário a proteger; aí se cria um segundo projeto e o `--dart-define` troca de URL.
+- ▶ **Termos aceitos no passo 1 do onboarding** (caixa obrigatória, `terms_accepted_at`), e não na tela de cadastro, para quem entra pelo Google passar pelo mesmo aceite.
+- ▶ **Fonte do sistema respeitada até 1,3×** e travada acima disso (grade e botões de uma linha não quebram). Se quiser 2× com layout adaptado, é trabalho de uma fase de acessibilidade.
+- ▶ **Sem Sentry/Crashlytics por enquanto** (exigem conta sua); `[crash]` no logcat.
+
+### O que eu verifico quando o projeto e a Play existirem
+
+- [ ] `terms_accepted_at` gravado no passo 1 pelo PostgREST (update de `username` + `terms_accepted_at` numa escrita só).
+- [ ] AAB assinado com a keystore de release aceito pelo Console (sem o AVISO do Gradle) e `versionCode` 8 registrado.
+- [ ] Instalado pelo teste interno: splash → login → onboarding → Início sem a tela "Este build não está configurado" (os três `--dart-define` entraram).
+- [ ] Lembrete local sobrevive ao reinício do celular com o R8 ligado (regras do `proguard-rules.pro`).
+- [ ] Convite `/plateia/u/<username>` abre o app (e, com `assetlinks.json` + `autoVerify`, sem perguntar "abrir com").
+- [ ] Deep link do perfil como primeira tela: voltar leva ao Início em vez de fechar o app.
+
 ## Para as próximas fases (já dá para adiantar)
 
 - [x] ~~**Supabase**: criar projeto~~ → movido para a fase 02, acima.
 - [x] ~~**Google Cloud**: credencial OAuth para o login Google~~ → detalhado no passo 6 da fase 03, acima.
-- [ ] **Conta Google Play Console** (US$ 25 uma vez) e **keystore de release** (guardar senha fora do git). Fase 08.
-- [ ] **Antes de cobrar qualquer coisa ou colocar anúncio**: pedir licença comercial do TMDB (e-mail para `sales@themoviedb.org`, assunto "Commercial API Use", informando o país) e assinar o Starter da Streaming Availability (US$ 49/mês). Fase 08.
-- [ ] **Decidir preço** do plano premium (se houver). Fase 08 (a 07 não precisou).
+- [x] ~~**Conta Google Play Console** e **keystore de release**~~ → detalhado nos itens 1 e 2 da seção "Fase 08", acima.
+- [x] ~~**Antes de cobrar qualquer coisa ou colocar anúncio**: licença comercial do TMDB e Starter da Streaming Availability~~ → item 5 da "Fase 08".
+- [ ] **Decidir preço** do plano premium (se houver). Nenhuma fase precisou: o MVP sai grátis. Quando decidir, é o gatilho do item 5 da "Fase 08".

@@ -9,8 +9,10 @@ import '../../../core/errors/app_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/deep_link_fallback.dart';
 import '../../../core/widgets/poster_image.dart';
 import '../../../core/widgets/rating_stars.dart';
+import '../../../core/widgets/skeletons.dart';
 import '../../../core/widgets/spoiler_blur.dart';
 import '../../diary/domain/entry.dart';
 import '../../diary/presentation/entry_poster_tile.dart';
@@ -46,6 +48,8 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        // perfil de terceiro pode ser a primeira tela (link de convite): voltar vai ao Início
+        leading: isMe ? null : const BackOrHomeButton(),
         title: Text(profile != null ? '@${profile.username}' : 'Perfil'),
         actions: [
           if (profile != null)
@@ -101,7 +105,13 @@ class _ProfileBody extends ConsumerWidget {
                     : TabBarView(
                         children: [
                           _WatchedTab(userId: profile.id),
-                          _EntriesGrid(userId: profile.id, status: EntryStatus.want, emptyTitle: 'Nada na lista de "quero ver"'),
+                          _EntriesGrid(
+                            userId: profile.id,
+                            status: EntryStatus.want,
+                            emptyTitle: 'Nada na lista de "quero ver"',
+                            emptySubtitle: isMe ? 'Marque o que quer ver e a aba Assinar diz onde está.' : null,
+                            emptyAction: isMe ? _searchAction(context) : null,
+                          ),
                           _ListsTab(userId: profile.id, isMe: isMe),
                           _ReviewsTab(userId: profile.id),
                         ],
@@ -344,6 +354,7 @@ class _WatchedTab extends ConsumerWidget {
       status: EntryStatus.watched,
       emptyTitle: 'Nada assistido ainda',
       emptySubtitle: 'Abra um título e toque em Registrar.',
+      emptyAction: _searchAction(context),
       header: watching.isEmpty
           ? null
           : Column(
@@ -378,13 +389,28 @@ class _WatchedTab extends ConsumerWidget {
       );
 }
 
+/// Ação dos estados vazios do meu diário: ir para a busca (aba Buscar).
+Widget _searchAction(BuildContext context) => FilledButton.icon(
+      onPressed: () => context.go(Routes.search),
+      icon: const Icon(Icons.search),
+      label: const Text('Buscar um título'),
+    );
+
 class _EntriesGrid extends ConsumerWidget {
-  const _EntriesGrid({required this.userId, required this.status, required this.emptyTitle, this.emptySubtitle, this.header});
+  const _EntriesGrid({
+    required this.userId,
+    required this.status,
+    required this.emptyTitle,
+    this.emptySubtitle,
+    this.emptyAction,
+    this.header,
+  });
 
   final String userId;
   final EntryStatus status;
   final String emptyTitle;
   final String? emptySubtitle;
+  final Widget? emptyAction;
   final Widget? header;
 
   @override
@@ -394,13 +420,14 @@ class _EntriesGrid extends ConsumerWidget {
     return AsyncView<List<Entry>>(
       value: entries,
       onRetry: () => ref.invalidate(provider),
+      loading: const GridSkeleton(),
       isEmpty: (l) => l.isEmpty && header == null,
-      empty: EmptyView(icon: Icons.grid_view_outlined, title: emptyTitle, subtitle: emptySubtitle),
+      empty: EmptyView(icon: Icons.grid_view_outlined, title: emptyTitle, subtitle: emptySubtitle, action: emptyAction),
       data: (l) => CustomScrollView(
         slivers: [
           if (header != null) SliverToBoxAdapter(child: header),
           if (l.isEmpty)
-            SliverToBoxAdapter(child: EmptyView(icon: Icons.grid_view_outlined, title: emptyTitle, subtitle: emptySubtitle))
+            SliverToBoxAdapter(child: EmptyView(icon: Icons.grid_view_outlined, title: emptyTitle, subtitle: emptySubtitle, action: emptyAction))
           else
             SliverPadding(
               padding: const EdgeInsets.all(12),
@@ -494,7 +521,7 @@ class _ReviewsTab extends ConsumerWidget {
       value: reviews,
       onRetry: () => ref.invalidate(provider),
       isEmpty: (l) => l.isEmpty,
-      empty: const EmptyView(icon: Icons.rate_review_outlined, title: 'Nenhuma review ainda'),
+      empty: const EmptyView(icon: Icons.rate_review_outlined, title: 'Nenhuma review ainda', subtitle: 'Reviews ficam na folha Registrar, depois da nota.'),
       data: (l) => ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: l.length,

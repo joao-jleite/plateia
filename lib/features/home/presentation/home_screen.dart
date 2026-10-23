@@ -6,6 +6,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/poster_tile.dart';
+import '../../../core/widgets/skeletons.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_providers.dart';
 import '../../feed/presentation/checkin_strip.dart';
@@ -32,10 +33,20 @@ class HomeScreen extends ConsumerWidget {
         child: AsyncView<HomeSections>(
           value: sections,
           onRetry: () => ref.invalidate(homeSectionsProvider),
+          loading: const HomeSkeleton(),
           isEmpty: (d) => d.sections.every((s) => s.items.isEmpty),
-          empty: const EmptyView(
-            title: 'Nada para mostrar ainda',
-            subtitle: 'Puxe para atualizar ou use a busca.',
+          empty: ListView(
+            children: [
+              EmptyView(
+                title: 'Nada para mostrar ainda',
+                subtitle: 'Puxe para atualizar ou procure um título.',
+                action: FilledButton.icon(
+                  onPressed: () => context.go(Routes.search),
+                  icon: const Icon(Icons.search),
+                  label: const Text('Buscar um título'),
+                ),
+              ),
+            ],
           ),
           data: (d) => ListView(
             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -78,7 +89,7 @@ class _SectionRow extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: 260,
+            height: PosterTile.heightFor(context),
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),

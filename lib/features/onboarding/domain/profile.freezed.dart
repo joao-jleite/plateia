@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Profile {
 
- String get id; String get username; String? get displayName; String? get bio; String? get avatarUrl; bool get isPrivate; String get region; DateTime? get onboardedAt; DateTime? get createdAt;
+ String get id; String get username; String? get displayName; String? get bio; String? get avatarUrl; bool get isPrivate; String get region; DateTime? get onboardedAt; DateTime? get createdAt;/// Aceite dos termos e da política (migração 0006, passo 1 do onboarding).
+ DateTime? get termsAcceptedAt;
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +30,16 @@ $ProfileCopyWith<Profile> get copyWith => _$ProfileCopyWithImpl<Profile>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.isPrivate, isPrivate) || other.isPrivate == isPrivate)&&(identical(other.region, region) || other.region == region)&&(identical(other.onboardedAt, onboardedAt) || other.onboardedAt == onboardedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.isPrivate, isPrivate) || other.isPrivate == isPrivate)&&(identical(other.region, region) || other.region == region)&&(identical(other.onboardedAt, onboardedAt) || other.onboardedAt == onboardedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.termsAcceptedAt, termsAcceptedAt) || other.termsAcceptedAt == termsAcceptedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,displayName,bio,avatarUrl,isPrivate,region,onboardedAt,createdAt);
+int get hashCode => Object.hash(runtimeType,id,username,displayName,bio,avatarUrl,isPrivate,region,onboardedAt,createdAt,termsAcceptedAt);
 
 @override
 String toString() {
-  return 'Profile(id: $id, username: $username, displayName: $displayName, bio: $bio, avatarUrl: $avatarUrl, isPrivate: $isPrivate, region: $region, onboardedAt: $onboardedAt, createdAt: $createdAt)';
+  return 'Profile(id: $id, username: $username, displayName: $displayName, bio: $bio, avatarUrl: $avatarUrl, isPrivate: $isPrivate, region: $region, onboardedAt: $onboardedAt, createdAt: $createdAt, termsAcceptedAt: $termsAcceptedAt)';
 }
 
 
@@ -49,7 +50,7 @@ abstract mixin class $ProfileCopyWith<$Res>  {
   factory $ProfileCopyWith(Profile value, $Res Function(Profile) _then) = _$ProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String username, String? displayName, String? bio, String? avatarUrl, bool isPrivate, String region, DateTime? onboardedAt, DateTime? createdAt
+ String id, String username, String? displayName, String? bio, String? avatarUrl, bool isPrivate, String region, DateTime? onboardedAt, DateTime? createdAt, DateTime? termsAcceptedAt
 });
 
 
@@ -66,7 +67,7 @@ class _$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? displayName = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? isPrivate = null,Object? region = null,Object? onboardedAt = freezed,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? displayName = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? isPrivate = null,Object? region = null,Object? onboardedAt = freezed,Object? createdAt = freezed,Object? termsAcceptedAt = freezed,}) {
   return _then(Profile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
@@ -77,6 +78,7 @@ as String?,isPrivate: null == isPrivate ? _self.isPrivate : isPrivate // ignore:
 as bool,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as String,onboardedAt: freezed == onboardedAt ? _self.onboardedAt : onboardedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,termsAcceptedAt: freezed == termsAcceptedAt ? _self.termsAcceptedAt : termsAcceptedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String? displayName,  String? bio,  String? avatarUrl,  bool isPrivate,  String region,  DateTime? onboardedAt,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String? displayName,  String? bio,  String? avatarUrl,  bool isPrivate,  String region,  DateTime? onboardedAt,  DateTime? createdAt,  DateTime? termsAcceptedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatarUrl,_that.isPrivate,_that.region,_that.onboardedAt,_that.createdAt);case _:
+return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatarUrl,_that.isPrivate,_that.region,_that.onboardedAt,_that.createdAt,_that.termsAcceptedAt);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatar
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String? displayName,  String? bio,  String? avatarUrl,  bool isPrivate,  String region,  DateTime? onboardedAt,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String? displayName,  String? bio,  String? avatarUrl,  bool isPrivate,  String region,  DateTime? onboardedAt,  DateTime? createdAt,  DateTime? termsAcceptedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Profile():
-return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatarUrl,_that.isPrivate,_that.region,_that.onboardedAt,_that.createdAt);case _:
+return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatarUrl,_that.isPrivate,_that.region,_that.onboardedAt,_that.createdAt,_that.termsAcceptedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +205,10 @@ return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatar
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String? displayName,  String? bio,  String? avatarUrl,  bool isPrivate,  String region,  DateTime? onboardedAt,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String? displayName,  String? bio,  String? avatarUrl,  bool isPrivate,  String region,  DateTime? onboardedAt,  DateTime? createdAt,  DateTime? termsAcceptedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatarUrl,_that.isPrivate,_that.region,_that.onboardedAt,_that.createdAt);case _:
+return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatarUrl,_that.isPrivate,_that.region,_that.onboardedAt,_that.createdAt,_that.termsAcceptedAt);case _:
   return null;
 
 }
@@ -218,7 +220,7 @@ return $default(_that.id,_that.username,_that.displayName,_that.bio,_that.avatar
 @JsonSerializable()
 
 class _Profile extends Profile {
-  const _Profile({required this.id, required this.username, this.displayName, this.bio, this.avatarUrl, this.isPrivate = false, this.region = 'BR', this.onboardedAt, this.createdAt}): super._();
+  const _Profile({required this.id, required this.username, this.displayName, this.bio, this.avatarUrl, this.isPrivate = false, this.region = 'BR', this.onboardedAt, this.createdAt, this.termsAcceptedAt}): super._();
   factory _Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
 
 @override final  String id;
@@ -230,6 +232,8 @@ class _Profile extends Profile {
 @override@JsonKey() final  String region;
 @override final  DateTime? onboardedAt;
 @override final  DateTime? createdAt;
+/// Aceite dos termos e da política (migração 0006, passo 1 do onboarding).
+@override final  DateTime? termsAcceptedAt;
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
@@ -244,16 +248,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.isPrivate, isPrivate) || other.isPrivate == isPrivate)&&(identical(other.region, region) || other.region == region)&&(identical(other.onboardedAt, onboardedAt) || other.onboardedAt == onboardedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.isPrivate, isPrivate) || other.isPrivate == isPrivate)&&(identical(other.region, region) || other.region == region)&&(identical(other.onboardedAt, onboardedAt) || other.onboardedAt == onboardedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.termsAcceptedAt, termsAcceptedAt) || other.termsAcceptedAt == termsAcceptedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,displayName,bio,avatarUrl,isPrivate,region,onboardedAt,createdAt);
+int get hashCode => Object.hash(runtimeType,id,username,displayName,bio,avatarUrl,isPrivate,region,onboardedAt,createdAt,termsAcceptedAt);
 
 @override
 String toString() {
-  return 'Profile(id: $id, username: $username, displayName: $displayName, bio: $bio, avatarUrl: $avatarUrl, isPrivate: $isPrivate, region: $region, onboardedAt: $onboardedAt, createdAt: $createdAt)';
+  return 'Profile(id: $id, username: $username, displayName: $displayName, bio: $bio, avatarUrl: $avatarUrl, isPrivate: $isPrivate, region: $region, onboardedAt: $onboardedAt, createdAt: $createdAt, termsAcceptedAt: $termsAcceptedAt)';
 }
 
 
@@ -264,7 +268,7 @@ abstract mixin class _$ProfileCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   factory _$ProfileCopyWith(_Profile value, $Res Function(_Profile) _then) = __$ProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String username, String? displayName, String? bio, String? avatarUrl, bool isPrivate, String region, DateTime? onboardedAt, DateTime? createdAt
+ String id, String username, String? displayName, String? bio, String? avatarUrl, bool isPrivate, String region, DateTime? onboardedAt, DateTime? createdAt, DateTime? termsAcceptedAt
 });
 
 
@@ -281,7 +285,7 @@ class __$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? displayName = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? isPrivate = null,Object? region = null,Object? onboardedAt = freezed,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? displayName = freezed,Object? bio = freezed,Object? avatarUrl = freezed,Object? isPrivate = null,Object? region = null,Object? onboardedAt = freezed,Object? createdAt = freezed,Object? termsAcceptedAt = freezed,}) {
   return _then(_Profile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
@@ -292,6 +296,7 @@ as String?,isPrivate: null == isPrivate ? _self.isPrivate : isPrivate // ignore:
 as bool,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as String,onboardedAt: freezed == onboardedAt ? _self.onboardedAt : onboardedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,termsAcceptedAt: freezed == termsAcceptedAt ? _self.termsAcceptedAt : termsAcceptedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

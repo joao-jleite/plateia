@@ -1,0 +1,73 @@
+/* Plateia · páginas públicas (GitHub Pages). Mesma paleta do app (docs/DESIGN.md). */
+:root {
+  --bg: #0e0d12;
+  --surface: #17161d;
+  --surface-high: #22212a;
+  --line: #2b2a34;
+  --text: #f3efe6;
+  --muted: #a9a49a;
+  --gold: #f2b544;
+  --on-gold: #2a1d00;
+  --max: 720px;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold); }
+header.topo {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+header.topo .conteudo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+header.topo img { width: 36px; height: 36px; border-radius: 9px; }
+header.topo strong { font-size: 18px; }
+header.topo nav { margin-left: auto; display: flex; gap: 14px; flex-wrap: wrap; }
+header.topo nav a { color: var(--muted); text-decoration: none; font-size: 14px; }
+header.topo nav a:hover { color: var(--text); }
+.conteudo { max-width: var(--max); margin: 0 auto; padding: 0 16px; }
+main { padding: 32px 0 56px; }
+h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.3px; }
+h2 { font-size: 20px; margin: 32px 0 8px; }
+h3 { font-size: 16px; margin: 20px 0 6px; }
+p, li { color: var(--text); }
+.muted { color: var(--muted); }
+.atualizado { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+.cartao {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.botao {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--on-gold);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 12px 20px;
+  border-radius: 999px;
+}
+.botao.secundario { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--surface-high); padding: 1px 6px; border-radius: 6px; font-size: 90%; }
+ol.passos li { margin-bottom: 8px; }
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; padding: 20px 0 32px; }
+footer .conteudo { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.hero { display: grid; gap: 20px; align-items: center; grid-template-columns: 1fr; }
+.hero img { width: 112px; height: 112px; border-radius: 26px; }
+.grade { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .grade { grid-template-columns: 1fr 1fr; } }

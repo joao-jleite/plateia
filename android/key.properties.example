@@ -1,0 +1,14 @@
+# Modelo de android/key.properties (fase 08). Copie para android/key.properties
+# (já está no .gitignore) e preencha com a keystore de release que VOCÊ gerou:
+#
+#   keytool -genkeypair -v -keystore "$env:USERPROFILE\plateia-release.jks" -alias plateia -keyalg RSA -keysize 2048 -validity 10000
+#
+# Guarde o .jks e as senhas fora do git (gerenciador de senhas + cópia offline).
+# Perder a keystore = nunca mais atualizar o app na Play (a Play App Signing
+# guarda só a chave de upload; mesmo assim, não perca).
+#
+# storeFile é relativo à pasta android/ (ou absoluto).
+storePassword=TROQUE
+keyPassword=TROQUE
+keyAlias=plateia
+storeFile=C:/Users/joao-/plateia-release.jks

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/deep_link_fallback.dart';
 import '../../../core/widgets/spoiler_blur.dart';
 import '../../../core/widgets/user_avatar.dart';
 import '../../auth/presentation/auth_providers.dart';
@@ -94,6 +95,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const BackOrHomeButton(),
         title: const Text('Atividade'),
         actions: [
           if (a != null)

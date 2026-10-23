@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/config/tmdb_images.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/skeletons.dart';
 import '../../../core/widgets/poster_image.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_providers.dart';
@@ -100,6 +101,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           : AsyncView<SearchPage>(
               value: results,
               onRetry: () => ref.invalidate(searchResultsProvider(_query)),
+              loading: const ListSkeleton(),
               isEmpty: (d) => d.results.isEmpty,
               empty: EmptyView(
                 icon: Icons.search_off,

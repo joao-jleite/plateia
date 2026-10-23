@@ -116,17 +116,17 @@ final class ReminderSchedulerProvider
 
 String _$reminderSchedulerHash() => r'19a12995e8f30b163928b92e2685469c9394e8bc';
 
-/// Chave "aceito plano com anúncios" (SPEC §5.9). Vive enquanto o app vive:
-/// ainda não há preferência local persistida (decisão da fase 07, ▶).
+/// Chave "aceito plano com anúncios" (SPEC §5.9), persistida no aparelho
+/// (`shared_preferences`, fase 08): sobrevive a fechar o app.
 
 @ProviderFor(AcceptAds)
 final acceptAdsProvider = AcceptAdsProvider._();
 
-/// Chave "aceito plano com anúncios" (SPEC §5.9). Vive enquanto o app vive:
-/// ainda não há preferência local persistida (decisão da fase 07, ▶).
+/// Chave "aceito plano com anúncios" (SPEC §5.9), persistida no aparelho
+/// (`shared_preferences`, fase 08): sobrevive a fechar o app.
 final class AcceptAdsProvider extends $NotifierProvider<AcceptAds, bool> {
-  /// Chave "aceito plano com anúncios" (SPEC §5.9). Vive enquanto o app vive:
-  /// ainda não há preferência local persistida (decisão da fase 07, ▶).
+  /// Chave "aceito plano com anúncios" (SPEC §5.9), persistida no aparelho
+  /// (`shared_preferences`, fase 08): sobrevive a fechar o app.
   AcceptAdsProvider._()
     : super(
         from: null,
@@ -154,10 +154,10 @@ final class AcceptAdsProvider extends $NotifierProvider<AcceptAds, bool> {
   }
 }
 
-String _$acceptAdsHash() => r'8bb602de83d13faa4b2d5c8658d96692f1d307fa';
+String _$acceptAdsHash() => r'985120b34d685c0039eabf2bdad7780aa960b019';
 
-/// Chave "aceito plano com anúncios" (SPEC §5.9). Vive enquanto o app vive:
-/// ainda não há preferência local persistida (decisão da fase 07, ▶).
+/// Chave "aceito plano com anúncios" (SPEC §5.9), persistida no aparelho
+/// (`shared_preferences`, fase 08): sobrevive a fechar o app.
 
 abstract class _$AcceptAds extends $Notifier<bool> {
   bool build();
@@ -365,7 +365,7 @@ final class MySubscriptionsProvider
   MySubscriptions create() => MySubscriptions();
 }
 
-String _$mySubscriptionsHash() => r'c965319f883ab0f90699b547251cc84721ff830b';
+String _$mySubscriptionsHash() => r'491d8ac1464a39cdc342d65801c21ab1f832c980';
 
 /// Minhas assinaturas (`/subscribe/mine`): leitura, gravação otimista com
 /// desfazer e o lembrete local sincronizado a cada mudança (e ao carregar, para

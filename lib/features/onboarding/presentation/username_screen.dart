@@ -6,13 +6,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/app_exception.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/widgets/legal_links.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../domain/profile.dart';
 import '../domain/username.dart';
 import 'my_profile_provider.dart';
+import 'onboarding_header.dart';
 
-/// Primeira etapa do onboarding: escolher o `@` (SPEC §J1.2). Depois segue
-/// para a etapa "importar", que até a fase 05 só oferece "Agora não".
+/// Primeira etapa do onboarding (SPEC §J1.2): o que é o app, escolher o `@`
+/// e aceitar os termos (fase 08). Depois segue para "importar a Netflix".
 class UsernameScreen extends ConsumerStatefulWidget {
   const UsernameScreen({super.key});
 
@@ -27,6 +29,8 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
   Timer? _debounce;
   bool? _available; // null = ainda não checado
   bool _saving = false;
+  bool _terms = false;
+  bool _termsError = false;
 
   @override
   void initState() {
@@ -77,13 +81,19 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
     }
   }
 
+  bool get _alreadyAccepted => ref.read(myProfileProvider).value?.hasAcceptedTerms ?? false;
+
   Future<void> _submit() async {
-    if (!(_form.currentState?.validate() ?? false)) return;
+    final formOk = _form.currentState?.validate() ?? false;
+    final termsOk = _terms || _alreadyAccepted;
+    setState(() => _termsError = !termsOk);
+    if (!formOk || !termsOk) return;
     setState(() => _saving = true);
     try {
       await ref.read(myProfileProvider.notifier).saveUsername(
             normalizeUsername(_username.text),
             displayName: _displayName.text,
+            acceptTerms: _terms,
           );
       if (mounted) context.go(Routes.onboardingImport);
     } catch (e) {
@@ -105,7 +115,8 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Seu @'),
+        title: const Text('Bem-vindo'),
+        automaticallyImplyLeading: false,
         actions: [
           TextButton(
             onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
@@ -121,8 +132,14 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Como as pessoas vão te encontrar', style: theme.textTheme.titleLarge),
-                const SizedBox(height: 20),
+                const OnboardingHeader(
+                  step: 1,
+                  icon: Icons.theaters_outlined,
+                  title: 'Seu diário de filmes, séries e anime',
+                  subtitle: 'Registre o que assiste em qualquer streaming, veja onde cada título está no Brasil e '
+                      'acompanhe seus amigos. Comece escolhendo como as pessoas vão te encontrar.',
+                ),
+                const SizedBox(height: 24),
                 TextFormField(
                   controller: _username,
                   autofocus: true,
@@ -152,6 +169,18 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
                   decoration: const InputDecoration(labelText: 'Nome de exibição (opcional)'),
                   onFieldSubmitted: (_) => _submit(),
                 ),
+                const SizedBox(height: 8),
+                // Aceite dos termos (Play: política de conteúdo gerado por usuário).
+                // Quem já aceitou (voltou ao passo 1 para trocar o @) não vê a caixa.
+                if (!_alreadyAccepted)
+                  TermsCheckbox(
+                    value: _terms,
+                    onChanged: (v) => setState(() {
+                      _terms = v;
+                      if (v) _termsError = false;
+                    }),
+                    error: _termsError ? 'Para continuar, aceite os termos e a política.' : null,
+                  ),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: _saving ? null : _submit,

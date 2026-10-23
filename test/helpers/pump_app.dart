@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:watchlog/core/prefs/preferences.dart';
 import 'package:watchlog/core/theme/app_theme.dart';
 import 'package:watchlog/core/widgets/poster_image.dart';
 import 'package:watchlog/dev/fixtures/fixture_auth_repository.dart';
@@ -83,6 +84,7 @@ Future<FakeLauncher> pumpScreen(
           latency: Duration.zero,
         ),
         imagesEnabledProvider.overrideWithValue(false),
+        preferencesProvider.overrideWithValue(MemoryPreferences()),
         streamingLauncherProvider.overrideWithValue(launcher),
         shareTextProvider.overrideWithValue((text) async => launcher.shared.add(text)),
         // sem plugin de notificação no teste: o lembrete fica em memória
@@ -93,9 +95,9 @@ Future<FakeLauncher> pumpScreen(
       ],
       child: MaterialApp.router(
         routerConfig: router,
-        // o tema real: o minimumSize infinito dos botões só estoura com ele
-        // (um FilledButton num Row/trailing dava "forces an infinite width" no aparelho)
-        theme: AppTheme.light(),
+        // o tema real do app (escuro), sem google_fonts: o HttpClient do
+        // flutter_test devolve 400 e o pacote reportaria erro assíncrono.
+        theme: AppTheme.dark(withGoogleFonts: false),
         locale: const Locale('pt', 'BR'),
         supportedLocales: const [Locale('pt', 'BR')],
         localizationsDelegates: const [

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plateia · convite</title>
+  <meta name="description" content="Alguém convidou você para o Plateia.">
+  <link rel="stylesheet" href="/plateia/estilo.css">
+  <link rel="icon" href="/plateia/icone.png" type="image/png">
+</head>
+<body>
+  <header class="topo">
+    <div class="conteudo">
+      <a href="/plateia/"><img src="/plateia/icone.png" alt="Início"></a>
+      <strong>Plateia</strong>
+      <nav>
+        <a href="/plateia/privacidade.html">Privacidade</a>
+        <a href="/plateia/termos.html">Termos</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="conteudo">
+    <!-- O GitHub Pages serve este 404.html para qualquer caminho que não exista,
+         inclusive /plateia/u/<username> (o link de convite do app). Quem tem o
+         app instalado nem chega aqui: o Android abre o app pelo intent-filter.
+         Quem não tem vê o convite e o botão de baixar. -->
+    <div id="convite" class="cartao" hidden>
+      <h1 id="titulo">Alguém convidou você para o Plateia</h1>
+      <p class="muted">Instale o app para ver o perfil, seguir e acompanhar o que essa pessoa assiste. O link abre direto no app depois de instalado.</p>
+      <p><a class="botao" href="/plateia/#baixar">Baixar o Plateia</a></p>
+    </div>
+    <div id="nao-encontrado" hidden>
+      <h1>Página não encontrada</h1>
+      <p class="muted">Esse endereço não existe. <a href="/plateia/">Voltar ao início</a>.</p>
+    </div>
+  </main>
+
+  <script>
+    // Lê o @ do caminho (/plateia/u/<username>) e mostra o convite; qualquer
+    // outro caminho mostra o 404 comum. Sem rede, sem rastreio.
+    (function () {
+      var m = location.pathname.match(/\/u\/([a-z0-9_]{3,20})\/?$/);
+      if (m) {
+        document.getElementById('titulo').textContent = '@' + m[1] + ' convidou você para o Plateia';
+        document.title = '@' + m[1] + ' · Plateia';
+        document.getElementById('convite').hidden = false;
+      } else {
+        document.getElementById('nao-encontrado').hidden = false;
+      }
+    })();
+  </script>
+</body>
+</html>

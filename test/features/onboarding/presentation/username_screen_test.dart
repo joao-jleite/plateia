@@ -37,10 +37,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Disponível'), findsOneWidget);
 
+    // Fase 08: sem aceitar os termos não passa; a caixa fica em vermelho.
+    await tester.tap(find.text('Continuar'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ImportScreen), findsNothing, reason: 'termos não aceitos');
+    expect(find.text('Para continuar, aceite os termos e a política.'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('terms-checkbox')));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Continuar'));
     await tester.pumpAndSettle();
     expect(find.byType(ImportScreen), findsOneWidget);
     expect(holder.container.read(myProfileProvider).value?.username, 'camila_27');
+    expect(holder.container.read(myProfileProvider).value?.hasAcceptedTerms, isTrue, reason: 'terms_accepted_at gravado');
 
     // "Agora não" leva à etapa de encontrar amigos (fase 06); "Concluir" fecha o onboarding.
     await tester.tap(find.text('Agora não'));

@@ -5,7 +5,9 @@ import '../../../core/config/tmdb_images.dart';
 import '../../../core/model/media_type.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/deep_link_fallback.dart';
 import '../../../core/widgets/poster_image.dart';
+import '../../../core/widgets/skeletons.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_providers.dart';
 import '../../feed/presentation/checkin_sheet.dart';
@@ -31,12 +33,14 @@ class TitleScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(title: Text(detail.value?.title.title ?? '')),
+      // o link de um título pode ser a primeira tela: voltar vai ao Início
+      appBar: AppBar(leading: const BackOrHomeButton(), title: Text(detail.value?.title.title ?? '')),
       body: RefreshIndicator(
         onRefresh: () => ref.read(provider.notifier).refresh(),
         child: AsyncView<TitleDetail>(
           value: detail,
           onRetry: () => ref.invalidate(provider),
+          loading: const TitleSkeleton(),
           data: (d) => _TitleBody(detail: d),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/legal_links.dart';
 import '../domain/auth_user.dart';
 import 'auth_form_helpers.dart';
 import 'auth_providers.dart';
@@ -96,6 +97,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         ),
         const SizedBox(height: 16),
         FilledButton(onPressed: busy ? null : _submit, child: const Text('Criar conta')),
+        const SizedBox(height: 12),
+        const LegalNotice(prefix: 'Ao criar a conta, você concorda com os '),
       ],
     );
   }

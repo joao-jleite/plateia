@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/widgets/tmdb_badge.dart';
+
 /// Sobre e atribuições (SPEC §5.7): o TMDB exige o aviso de não endosso e a
 /// JustWatch a menção como fonte dos provedores. Os logos dos streamings só
 /// indicam onde o título está.
@@ -29,15 +31,15 @@ class AboutScreen extends StatelessWidget {
           Text('Fontes de dados', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           const _Attribution(
-            // Marca do TMDB como texto até o João baixar o logo oficial
-            // (docs/PENDENCIAS-JOAO.md); o texto obrigatório já está aqui.
-            badge: 'TMDB',
+            // Logo oficial quando `assets/tmdb/logo.svg` existir (o João salva;
+            // docs/PENDENCIAS-JOAO.md); até lá, selo de texto. A frase é a obrigatória.
+            badge: TmdbBadge(height: 18),
             text: tmdbNotice,
             url: 'https://www.themoviedb.org/',
           ),
           const SizedBox(height: 12),
           const _Attribution(
-            badge: 'JustWatch',
+            badge: _TextBadge('JustWatch'),
             text: justwatchNotice,
             url: 'https://www.justwatch.com/br',
           ),
@@ -55,31 +57,45 @@ class AboutScreen extends StatelessWidget {
 class _Attribution extends StatelessWidget {
   const _Attribution({required this.badge, required this.text, required this.url});
 
-  final String badge;
+  final Widget badge;
   final String text;
   final String url;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return InkWell(
-      onTap: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
-      borderRadius: BorderRadius.circular(8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: scheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(badge, style: TextStyle(fontWeight: FontWeight.bold, color: scheme.onSecondaryContainer)),
+    return Semantics(
+      link: true,
+      child: InkWell(
+        onTap: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              badge,
+              const SizedBox(width: 12),
+              Expanded(child: Text(text)),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text)),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class _TextBadge extends StatelessWidget {
+  const _TextBadge(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: scheme.secondaryContainer, borderRadius: BorderRadius.circular(6)),
+      child: Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: scheme.onSecondaryContainer)),
     );
   }
 }

@@ -3,8 +3,9 @@ description: "Plateia (codinome): o que você assiste em todos os streamings, on
 # Pacote privado: nunca publicar no pub.dev.
 publish_to: "none"
 
-# versionCode = o número depois do "+". A fase 08 passa a controlar isso no release.
-version: 0.7.0+7
+# versionCode = o número depois do "+": sobe 1 a cada upload na Play (nunca repete).
+# versionName é o que a pessoa vê. Fase 08 = primeiro candidato a release.
+version: 1.0.0+8
 
 environment:
   sdk: ^3.12.2
@@ -44,6 +45,10 @@ dependencies:
   flutter_local_notifications: ^22.3.2
   timezone: ^0.11.2
   flutter_timezone: ^5.1.1
+  google_fonts: ^8.2.1
+  shared_preferences: ^2.5.6
+  skeletonizer: ^3.0.0
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +61,36 @@ dev_dependencies:
   freezed: ^4.0.0-dev.3
   json_serializable: ^6.15.2
   mocktail: ^1.0.5
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 flutter:
   uses-material-design: true
+  assets:
+    # Marca (ícone, splash, login): gerada por tool/branding/render_branding_test.dart
+    - assets/branding/plateia_mark.svg
+    # Logo oficial do TMDB (atribuição). A pasta fica no git vazia; quando o João
+    # salvar `assets/tmdb/logo.svg` nela, a tela Sobre e Onde assistir passam a
+    # mostrar o logo em vez do selo de texto (docs/PENDENCIAS-JOAO.md).
+    - assets/tmdb/
+
+# Ícone adaptativo do Android (fase 08). Regenerar: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/branding/icon_legacy.png
+  adaptive_icon_background: "#0E0D12"
+  adaptive_icon_foreground: assets/branding/icon_foreground.png
+  adaptive_icon_monochrome: assets/branding/icon_foreground.png
+  min_sdk_android: 24
+
+# Splash nativo (fase 08). Regenerar: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#0E0D12"
+  image: assets/branding/splash_mark.png
+  android_12:
+    color: "#0E0D12"
+    image: assets/branding/splash_android12.png
+  android: true
+  ios: false
+  web: false

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/config/tmdb_images.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/deep_link_fallback.dart';
 import '../../../core/widgets/poster_image.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../../social/domain/social_models.dart';
@@ -31,6 +32,7 @@ class ListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const BackOrHomeButton(),
         title: Text(model?.name ?? 'Lista'),
         actions: [
           if (isOwner) ...[

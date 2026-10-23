@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/utils/dates.dart';
+import '../../onboarding/presentation/onboarding_header.dart';
 import '../data/csv_picker.dart';
 import '../domain/import_pipeline.dart';
 import 'import_progress.dart';
@@ -131,7 +132,11 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     final sample = ref.watch(sampleCsvProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Importar da Netflix')),
+      appBar: AppBar(
+        title: Text(widget.onboarding ? 'Seu histórico' : 'Importar da Netflix'),
+        // no onboarding não há para onde voltar (o @ já foi salvo)
+        automaticallyImplyLeading: !widget.onboarding,
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -195,21 +200,30 @@ class _IntroView extends StatelessWidget {
         Expanded(
           child: ListView(
             children: [
-              const Icon(Icons.upload_file_outlined, size: 56),
-              const SizedBox(height: 16),
-              Text('Seu perfil pode nascer cheio', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
-              const SizedBox(height: 8),
+              if (onboarding)
+                const OnboardingHeader(
+                  step: 2,
+                  icon: Icons.upload_file_outlined,
+                  title: 'Seu perfil pode nascer cheio',
+                  subtitle: 'A Netflix deixa baixar o histórico do que você assistiu. Importe e seu diário já começa com tudo isso.',
+                )
+              else ...[
+                const Icon(Icons.upload_file_outlined, size: 56),
+                const SizedBox(height: 16),
+                Text('Seu perfil pode nascer cheio', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
+              ],
+              const SizedBox(height: 12),
               Text(
                 'Baixe seu histórico na Netflix em Conta → Perfis → Atividade de visualização → '
                 '"Baixar tudo" e escolha o arquivo aqui. O arquivo é lido no seu aparelho e descartado; '
                 'só os nomes dos títulos vão para o servidor.',
-                textAlign: TextAlign.center,
+                textAlign: onboarding ? TextAlign.start : TextAlign.center,
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 8),
               Text(
                 'Também aceitamos o ViewingActivity.csv da exportação completa da conta.',
-                textAlign: TextAlign.center,
+                textAlign: onboarding ? TextAlign.start : TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
               ),
               if (error != null) ...[

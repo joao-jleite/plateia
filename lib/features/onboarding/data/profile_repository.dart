@@ -22,7 +22,8 @@ abstract class ProfileRepository {
   /// isso [saveUsername] ainda trata o 23505.
   Future<bool> isUsernameAvailable(String username);
 
-  Future<Profile> saveUsername(String username, {String? displayName});
+  /// [acceptTerms] grava `terms_accepted_at = now()` junto (passo 1 do onboarding).
+  Future<Profile> saveUsername(String username, {String? displayName, bool acceptTerms = false});
 
   Future<Profile> completeOnboarding();
 
@@ -85,13 +86,14 @@ class SupabaseProfileRepository implements ProfileRepository {
   }
 
   @override
-  Future<Profile> saveUsername(String username, {String? displayName}) async {
+  Future<Profile> saveUsername(String username, {String? displayName, bool acceptTerms = false}) async {
     try {
       final row = await _client
           .from('profiles')
           .update({
             'username': username,
             if (displayName != null) 'display_name': displayName.trim().isEmpty ? null : displayName.trim(),
+            if (acceptTerms) 'terms_accepted_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', _uid)
           .select()

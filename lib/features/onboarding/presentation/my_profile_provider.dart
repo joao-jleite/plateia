@@ -25,9 +25,9 @@ class MyProfile extends _$MyProfile {
     return ref.watch(profileRepositoryProvider).getMyProfile();
   }
 
-  Future<void> saveUsername(String username, {String? displayName}) async {
+  Future<void> saveUsername(String username, {String? displayName, bool acceptTerms = false}) async {
     final repo = ref.read(profileRepositoryProvider);
-    final updated = await repo.saveUsername(username, displayName: displayName);
+    final updated = await repo.saveUsername(username, displayName: displayName, acceptTerms: acceptTerms);
     state = AsyncData(updated);
   }
 

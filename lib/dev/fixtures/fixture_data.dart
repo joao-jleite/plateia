@@ -19,11 +19,11 @@ abstract final class FixtureProviders {
     androidPackage: 'com.amazon.avod.thirdpartyclient', webDomain: 'www.primevideo.com',
     searchUrlTemplate: 'https://www.primevideo.com/search?phrase={q}', isFeatured: true, displayOrder: 2,
   );
-  // Sem logo de propósito (fase 07): o caminho anotado na fase 03 era de outro
-  // serviço (aparecia a Apple TV); placeholder é melhor que marca errada. O
-  // `providers-sync` traz o certo no projeto real.
+  // Logos do Disney+ e do Paramount+ conferidos no CDN público em 23/10/2026
+  // (fase 08; os da fase 03 mostravam Apple TV e Filmbox+). No projeto real o
+  // `providers-sync` grava o que o TMDB devolver.
   static const disney = StreamingProvider(
-    id: 337, slug: 'disney', name: 'Disney+',
+    id: 337, slug: 'disney', name: 'Disney+', logoPath: '/97yvRBw1GzX7fXprcF80er19ot.jpg',
     androidPackage: 'com.disney.disneyplus', webDomain: 'www.disneyplus.com',
     searchUrlTemplate: null, isFeatured: true, displayOrder: 3,
   );
@@ -42,9 +42,8 @@ abstract final class FixtureProviders {
     androidPackage: 'com.apple.atve.androidtv.appletv', webDomain: 'tv.apple.com',
     searchUrlTemplate: 'https://tv.apple.com/br/search?term={q}', isFeatured: true, displayOrder: 6,
   );
-  // Idem: o caminho anotado mostrava o Filmbox+.
   static const paramount = StreamingProvider(
-    id: 531, slug: 'paramount', name: 'Paramount+',
+    id: 531, slug: 'paramount', name: 'Paramount+', logoPath: '/h5DcR0J2EESLitnhR8xLG1QymTE.jpg',
     androidPackage: 'com.cbs.app', webDomain: 'www.paramountplus.com',
     searchUrlTemplate: 'https://www.paramountplus.com/br/search/?q={q}', isFeatured: true, displayOrder: 7,
   );

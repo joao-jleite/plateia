@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/routes.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/skeletons.dart';
 import '../../notifications/presentation/notifications_bell.dart';
 import '../domain/activity.dart';
 import '../domain/feed_grouping.dart';
@@ -49,14 +50,15 @@ class FeedScreen extends ConsumerWidget {
         child: AsyncView<List<Activity>>(
           value: feed,
           onRetry: () => ref.invalidate(feedProvider),
+          loading: const FeedSkeleton(),
           data: (items) {
             final groups = groupFeed(items);
             final notifier = ref.read(feedProvider.notifier);
-            return ListView(
-              padding: const EdgeInsets.only(bottom: 24),
-              children: [
-                const CheckinStrip(),
-                if (items.isEmpty)
+            if (items.isEmpty) {
+              return ListView(
+                padding: const EdgeInsets.only(bottom: 24),
+                children: [
+                  const CheckinStrip(),
                   EmptyView(
                     icon: Icons.dynamic_feed_outlined,
                     title: 'Seu feed está vazio',
@@ -66,12 +68,21 @@ class FeedScreen extends ConsumerWidget {
                       icon: const Icon(Icons.person_search_outlined),
                       label: const Text('Encontrar pessoas'),
                     ),
-                  )
-                else ...[
-                  for (final g in groups) FeedGroupCard(group: g, onLike: (a) => unawaited(like(a))),
-                  if (notifier.hasMore) _LoadMore(onVisible: notifier.loadMore),
+                  ),
                 ],
-              ],
+              );
+            }
+            // builder: só os cartões visíveis são construídos (feed longo sem engasgo)
+            final extra = notifier.hasMore ? 1 : 0;
+            return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 24),
+              itemCount: 1 + groups.length + extra,
+              itemBuilder: (context, i) {
+                if (i == 0) return const CheckinStrip();
+                final gi = i - 1;
+                if (gi == groups.length) return _LoadMore(onVisible: notifier.loadMore);
+                return FeedGroupCard(group: groups[gi], onLike: (a) => unawaited(like(a)));
+              },
             );
           },
         ),

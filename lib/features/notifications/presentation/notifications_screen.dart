@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/skeletons.dart';
 import '../../../core/widgets/user_avatar.dart';
 import '../../social/presentation/social_providers.dart';
 import '../domain/app_notification.dart';
@@ -46,11 +47,21 @@ class NotificationsScreen extends ConsumerWidget {
         child: AsyncView<List<AppNotification>>(
           value: notifications,
           onRetry: () => ref.invalidate(notificationsProvider),
+          loading: const ListSkeleton(round: true, leadingSize: 40),
           isEmpty: (l) => l.isEmpty,
-          empty: const EmptyView(
-            icon: Icons.notifications_none,
-            title: 'Nada por aqui ainda',
-            subtitle: 'Quando alguém seguir, curtir ou comentar, aparece aqui.',
+          empty: ListView(
+            children: [
+              EmptyView(
+                icon: Icons.notifications_none,
+                title: 'Nada por aqui ainda',
+                subtitle: 'Quando alguém seguir, curtir ou comentar, aparece aqui.',
+                action: OutlinedButton.icon(
+                  onPressed: () => context.push(Routes.searchUsers),
+                  icon: const Icon(Icons.person_search_outlined),
+                  label: const Text('Encontrar pessoas'),
+                ),
+              ),
+            ],
           ),
           data: (list) {
             final notifier = ref.read(notificationsProvider.notifier);
@@ -141,8 +152,7 @@ class _NotificationTile extends ConsumerWidget {
                     children: [
                       FilledButton(
                         key: Key('notif-accept-${n.id}'),
-                        // o tema dá minimumSize de largura infinita aos FilledButton (botão de
-                        // formulário); num Row isso estoura, então a largura mínima volta a 0
+                        // botão curto dentro de Row: largura mínima 0 e altura 36
                         style: FilledButton.styleFrom(visualDensity: VisualDensity.compact, minimumSize: const Size(0, 36)),
                         onPressed: () => unawaited(resolveRequest(accept: true)),
                         child: const Text('Aceitar'),

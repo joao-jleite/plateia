@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:watchlog/core/model/media_type.dart';
 import 'package:watchlog/features/catalog/presentation/catalog_providers.dart';
 import 'package:watchlog/features/title/domain/watch_action.dart';
+import 'package:watchlog/core/widgets/skeletons.dart';
 import 'package:watchlog/features/title/presentation/title_screen.dart';
 
 import '../../../helpers/provider_container_holder.dart';
@@ -11,7 +12,7 @@ import '../../../helpers/pump_app.dart';
 void main() {
   testWidgets('One Piece: detalhe, Onde assistir ordenado, botão abre o link da Netflix', (tester) async {
     final launcher = await pumpScreen(tester, const TitleScreen(type: MediaType.tv, tmdbId: 37854));
-    expect(find.byType(CircularProgressIndicator), findsOneWidget, reason: 'estado carregando');
+    expect(find.byType(TitleSkeleton), findsOneWidget, reason: 'estado carregando (skeleton, fase 08)');
     await tester.pumpAndSettle();
 
     expect(find.text('One Piece'), findsWidgets);

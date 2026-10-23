@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../onboarding/presentation/my_profile_provider.dart';
+import '../../onboarding/presentation/onboarding_header.dart';
 import 'share_profile.dart';
 import 'user_search_screen.dart';
 
@@ -46,17 +47,17 @@ class _OnboardingFollowScreenState extends ConsumerState<OnboardingFollowScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final me = ref.watch(myProfileProvider).value;
     return Scaffold(
       appBar: AppBar(title: const Text('Encontre amigos'), automaticallyImplyLeading: false),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Text(
-              'O feed mostra o que quem você segue assiste. Procure pelo @ de quem você conhece ou mande o link do seu perfil.',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(24, 8, 24, 4),
+            child: OnboardingHeader(
+              step: 3,
+              title: 'Quem você quer acompanhar?',
+              subtitle: 'O feed mostra o que quem você segue assiste. Procure pelo @ de quem você conhece ou mande o link do seu perfil. Dá para pular.',
             ),
           ),
           const Expanded(child: UserSearchBody(autofocus: false)),

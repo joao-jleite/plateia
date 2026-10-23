@@ -20,6 +20,9 @@ _Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
+  termsAcceptedAt: json['terms_accepted_at'] == null
+      ? null
+      : DateTime.parse(json['terms_accepted_at'] as String),
 );
 
 Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
@@ -32,4 +35,5 @@ Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
   'region': instance.region,
   'onboarded_at': ?instance.onboardedAt?.toIso8601String(),
   'created_at': ?instance.createdAt?.toIso8601String(),
+  'terms_accepted_at': ?instance.termsAcceptedAt?.toIso8601String(),
 };

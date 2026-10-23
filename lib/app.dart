@@ -23,8 +23,17 @@ class WatchlogApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Plateia',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
+      // Escuro por padrão (docs/DESIGN.md): app de filme; o tema claro existe
+      // só como reserva para uma chave futura em Configurações.
+      theme: AppTheme.dark(),
       darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.dark,
+      // Respeita a fonte do sistema até 1,3×; acima disso a grade de pôsteres
+      // e os botões de uma linha quebrariam (acessibilidade sem layout estourado).
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.3,
+        child: child ?? const SizedBox.shrink(),
+      ),
       locale: const Locale('pt', 'BR'),
       supportedLocales: const [Locale('pt', 'BR')],
       localizationsDelegates: const [
