@@ -37,6 +37,17 @@ void main() {
     test('sem onboarding vai para o username, e pode andar dentro do onboarding', () {
       expect(computeRedirect(gate: GateState.needsOnboarding, location: Routes.home), Routes.onboardingUsername);
       expect(computeRedirect(gate: GateState.needsOnboarding, location: Routes.onboardingImport), isNull);
+      expect(computeRedirect(gate: GateState.needsOnboarding, location: Routes.onboardingFollow), isNull);
+      expect(computeRedirect(gate: GateState.needsOnboarding, location: Routes.feed), Routes.onboardingUsername);
+    });
+    test('pronto: rotas sociais ficam onde estão; o convite /u/:username também', () {
+      expect(computeRedirect(gate: GateState.ready, location: Routes.feed), isNull);
+      expect(computeRedirect(gate: GateState.ready, location: Routes.activity('abc')), isNull);
+      expect(computeRedirect(gate: GateState.ready, location: Routes.notifications), isNull);
+      expect(computeRedirect(gate: GateState.ready, location: Routes.invite('foxer')), isNull);
+      expect(computeRedirect(gate: GateState.ready, location: Routes.invitePath('foxer')), isNull);
+      expect(Routes.inviteUrl('foxer'), endsWith(Routes.invitePath('foxer')), reason: 'o link compartilhado tem que bater com a rota que o app aceita');
+      expect(computeRedirect(gate: GateState.ready, location: Routes.onboardingFollow), Routes.home);
     });
     test('pronto sai de auth/onboarding/splash para o Início e fica nas outras', () {
       expect(computeRedirect(gate: GateState.ready, location: Routes.login), Routes.home);

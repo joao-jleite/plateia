@@ -1,4 +1,4 @@
-# Como rodar · Plateia (fases 03–05)
+# Como rodar · Plateia (fases 03–06)
 
 Tudo no PowerShell, na raiz do repo. Flutter 3.44.8, Node ≥ 20, Deno 2 (`npm i -g deno`), Supabase CLI.
 
@@ -23,6 +23,8 @@ Fase 04: quem loga já tem um diário de amostra (`lib/dev/fixtures/fixture_diar
 
 Fase 05 (importar a Netflix): a tela `/onboarding/import` (e `/import`, pelas Configurações) tem o botão extra "Usar CSV de exemplo (fixtures)" com um histórico sintético de 23 linhas (`lib/dev/fixtures/fixture_netflix_csv.dart`: 9 casam direto, One Piece vai à revisão como homônimo, "Duna" como parcial, trailer e "Star Wars: Episódio IV: …" sem candidato). O seletor de arquivo real também funciona no emulador: `adb push NetflixViewingHistory.csv /sdcard/Download/` e, no SAF, menu ☰ → Downloads. O backend de fixtures imita `import-match` com a mesma pontuação (`features/import_netflix/domain/matching_score.dart`) e as regras de idempotência das tabelas; o log mostra `{fn: import-match, …} items=13 high=9 medium=1 low=3` e `[import] … auto_match=69%`. Importar duas vezes avisa "Arquivo já importado em DD/MM/AAAA" e termina com "0 novos no diário".
 
+Fase 06 (rede social): a tela de login ganhou "Entrar como (dados de amostra)" com `@foxer` (público), `@camila` (privado) e `@vini` (público); sair (Perfil → ⚙ → Sair) e entrar com outro mantém o que o anterior fez, porque a memória é do processo (`FixtureSocialStore`, `lib/dev/fixtures/fixture_social.dart`, que espelha os triggers do banco: privacidade no seguir, limpeza no bloqueio, contadores, notificações). Cena inicial: foxer ↔ camila se seguem, vini ↔ foxer se seguem, camila e vini curtiram/comentaram a review do foxer, foxer tem um check-in ativo. Rotas novas: `/feed` (aba), `/activity/:id`, `/search/users`, `/notifications`, `/follow-requests`, `/settings/blocked`, `/profile/:username/followers|following`, `/onboarding/follow` e `/u/:username` (link de convite, redireciona para o perfil). Para simular o servidor recusando (otimista + Desfazer): `fixtureOverrides(failWrites: true)`; para testar o feed em erro, `pumpScreen(..., feed: repositórioQueFalha)`. `pumpScreen` sobe as telas com `AppTheme.light()`: o tema dá largura mínima infinita a `FilledButton`/`OutlinedButton`, então um botão dentro de `Row` ou `ListTile.trailing` precisa de `minimumSize: Size(0, h)` (o teste estoura com "forces an infinite width" se esquecer).
+
 Ensaio com um CSV real, sem servidor (só a metade que roda no aparelho): `dart run tool/import_dry_run.dart research/NetflixViewingHistory.csv [--profile "Nome"] [--names]`.
 
 ### Com o projeto Supabase
@@ -37,7 +39,7 @@ Sem `SUPABASE_URL`/`SUPABASE_ANON_KEY` o app abre numa tela "configuração ause
 
 ```powershell
 flutter build apk --release --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=… --dart-define=GOOGLE_WEB_CLIENT_ID=…   # produto
-flutter build apk --profile --dart-define=BACKEND=fixtures                                                                     # demonstração (é o plateia-fase05.apk)
+flutter build apk --profile --dart-define=BACKEND=fixtures                                                                     # demonstração (é o plateia-fase06.apk)
 ```
 
 Saída em `build/app/outputs/flutter-apk/`. O mais novo vai para a Área de Trabalho; os antigos para `dist/` (fora do git).
@@ -45,8 +47,11 @@ Saída em `build/app/outputs/flutter-apk/`. O mais novo vai para a Área de Trab
 ## Banco
 
 ```powershell
-npm run db:test              # Postgres 17 local: migrações 0001–0004 + checagem de RLS + tools/db/tests/*.sql (4 arquivos, ~8 s)
+npm run db:test              # Postgres 17 local: migrações 0001–0005 + checagem de RLS + tools/db/tests/*.sql (5 arquivos, ~13 s)
 npm run db:test:keep         # idem, deixa o banco de pé em localhost:54329 até apertar Enter
+npm run db:seed-dev:local    # com o banco de pé: 3 contas de teste + diários + follows no Postgres local (ensaio do seed)
+npm run db:seed-dev:dry      # só imprime o plano do seed
+npm run db:seed-dev          # seed no projeto real: lê SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY de tools/db/.env (fora do git); `-- --reset` apaga as contas
 supabase db push             # só depois do db:test verde e do `supabase link`
 ```
 

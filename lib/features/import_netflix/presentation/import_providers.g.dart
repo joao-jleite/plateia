@@ -339,7 +339,7 @@ final class ImportControllerProvider
   }
 }
 
-String _$importControllerHash() => r'6814ca8675a31e054b66aa2907f4fdef123b3986';
+String _$importControllerHash() => r'2ddf7d44034433e14fadac47e80812f6ee4dbab3';
 
 /// A importação em si (SPEC §5.8, J1.4): ler → agrupar → casar (≤ 100 por
 /// chamada) → gravar (merge) → candidatos → resumo. Guarda o progresso para a

@@ -12,7 +12,8 @@ import '../../onboarding/presentation/my_profile_provider.dart';
 import '../data/account_repository.dart';
 
 /// Configurações (`/settings`): editar cartão, perfil privado (SPEC §5.3),
-/// sobre, sair e apagar conta (exigência da Play). Bloqueados vem na fase 06.
+/// pedidos para seguir, bloqueados (SPEC §5.4), sobre, sair e apagar conta
+/// (exigência da Play).
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -50,6 +51,21 @@ class SettingsScreen extends ConsumerWidget {
                       }
                     }));
                   },
+          ),
+          if (profile?.isPrivate ?? false)
+            ListTile(
+              leading: const Icon(Icons.how_to_reg_outlined),
+              title: const Text('Pedidos para seguir'),
+              subtitle: const Text('Quem pediu para seguir você'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(Routes.followRequests),
+            ),
+          ListTile(
+            leading: const Icon(Icons.block_outlined),
+            title: const Text('Bloqueados'),
+            subtitle: const Text('Quem você bloqueou; desbloquear não refaz nada'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.blocked),
           ),
           const Divider(),
           ListTile(

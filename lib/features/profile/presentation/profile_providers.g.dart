@@ -8,18 +8,21 @@ part of 'profile_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Cartão de um perfil pelo @. Null = não existe (ou bloqueio).
+/// Cartão de um perfil pelo @. Null = não existe (ou bloqueio). Recarrega
+/// quando a rede muda (bloquear some com o cartão).
 
 @ProviderFor(profileByUsername)
 final profileByUsernameProvider = ProfileByUsernameFamily._();
 
-/// Cartão de um perfil pelo @. Null = não existe (ou bloqueio).
+/// Cartão de um perfil pelo @. Null = não existe (ou bloqueio). Recarrega
+/// quando a rede muda (bloquear some com o cartão).
 
 final class ProfileByUsernameProvider
     extends
         $FunctionalProvider<AsyncValue<Profile?>, Profile?, FutureOr<Profile?>>
     with $FutureModifier<Profile?>, $FutureProvider<Profile?> {
-  /// Cartão de um perfil pelo @. Null = não existe (ou bloqueio).
+  /// Cartão de um perfil pelo @. Null = não existe (ou bloqueio). Recarrega
+  /// quando a rede muda (bloquear some com o cartão).
   ProfileByUsernameProvider._({
     required ProfileByUsernameFamily super.from,
     required String super.argument,
@@ -63,9 +66,10 @@ final class ProfileByUsernameProvider
   }
 }
 
-String _$profileByUsernameHash() => r'5e1d87147ef9ece21af142d4f6ff7a994471013e';
+String _$profileByUsernameHash() => r'59a89e731f4bb8f3e962f7b1872fde6e385bca36';
 
-/// Cartão de um perfil pelo @. Null = não existe (ou bloqueio).
+/// Cartão de um perfil pelo @. Null = não existe (ou bloqueio). Recarrega
+/// quando a rede muda (bloquear some com o cartão).
 
 final class ProfileByUsernameFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Profile?>, String> {
@@ -78,7 +82,8 @@ final class ProfileByUsernameFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Cartão de um perfil pelo @. Null = não existe (ou bloqueio).
+  /// Cartão de um perfil pelo @. Null = não existe (ou bloqueio). Recarrega
+  /// quando a rede muda (bloquear some com o cartão).
 
   ProfileByUsernameProvider call(String username) =>
       ProfileByUsernameProvider._(argument: username, from: this);
@@ -87,12 +92,14 @@ final class ProfileByUsernameFamily extends $Family
   String toString() => r'profileByUsernameProvider';
 }
 
-/// Contadores (`profile_counts`). Recarrega quando meu diário ou listas mudam.
+/// Contadores (`profile_counts`). Recarrega quando meu diário, listas ou a
+/// rede (seguir/aceitar) mudam.
 
 @ProviderFor(profileCounts)
 final profileCountsProvider = ProfileCountsFamily._();
 
-/// Contadores (`profile_counts`). Recarrega quando meu diário ou listas mudam.
+/// Contadores (`profile_counts`). Recarrega quando meu diário, listas ou a
+/// rede (seguir/aceitar) mudam.
 
 final class ProfileCountsProvider
     extends
@@ -102,7 +109,8 @@ final class ProfileCountsProvider
           FutureOr<ProfileCounts>
         >
     with $FutureModifier<ProfileCounts>, $FutureProvider<ProfileCounts> {
-  /// Contadores (`profile_counts`). Recarrega quando meu diário ou listas mudam.
+  /// Contadores (`profile_counts`). Recarrega quando meu diário, listas ou a
+  /// rede (seguir/aceitar) mudam.
   ProfileCountsProvider._({
     required ProfileCountsFamily super.from,
     required String super.argument,
@@ -147,9 +155,10 @@ final class ProfileCountsProvider
   }
 }
 
-String _$profileCountsHash() => r'7ab2440e2fc5f51ef6b0285fc9587158a4f7403f';
+String _$profileCountsHash() => r'822485bc6774876d58c8ab708fe7b2f52a6f69bc';
 
-/// Contadores (`profile_counts`). Recarrega quando meu diário ou listas mudam.
+/// Contadores (`profile_counts`). Recarrega quando meu diário, listas ou a
+/// rede (seguir/aceitar) mudam.
 
 final class ProfileCountsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<ProfileCounts>, String> {
@@ -162,7 +171,8 @@ final class ProfileCountsFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Contadores (`profile_counts`). Recarrega quando meu diário ou listas mudam.
+  /// Contadores (`profile_counts`). Recarrega quando meu diário, listas ou a
+  /// rede (seguir/aceitar) mudam.
 
   ProfileCountsProvider call(String profileId) =>
       ProfileCountsProvider._(argument: profileId, from: this);
@@ -171,17 +181,20 @@ final class ProfileCountsFamily extends $Family
   String toString() => r'profileCountsProvider';
 }
 
-/// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil?
+/// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil? Muda ao
+/// ser aceito num perfil privado ou ao bloquear.
 
 @ProviderFor(canViewContent)
 final canViewContentProvider = CanViewContentFamily._();
 
-/// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil?
+/// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil? Muda ao
+/// ser aceito num perfil privado ou ao bloquear.
 
 final class CanViewContentProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
-  /// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil?
+  /// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil? Muda ao
+  /// ser aceito num perfil privado ou ao bloquear.
   CanViewContentProvider._({
     required CanViewContentFamily super.from,
     required String super.argument,
@@ -225,9 +238,10 @@ final class CanViewContentProvider
   }
 }
 
-String _$canViewContentHash() => r'6ce55b113a947aa2c064cf946169a23092e8fcf3';
+String _$canViewContentHash() => r'ccfc902d0263eebe913e0089ac187004cca6259e';
 
-/// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil?
+/// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil? Muda ao
+/// ser aceito num perfil privado ou ao bloquear.
 
 final class CanViewContentFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<bool>, String> {
@@ -240,7 +254,8 @@ final class CanViewContentFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil?
+  /// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil? Muda ao
+  /// ser aceito num perfil privado ou ao bloquear.
 
   CanViewContentProvider call(String profileId) =>
       CanViewContentProvider._(argument: profileId, from: this);

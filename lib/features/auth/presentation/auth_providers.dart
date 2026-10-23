@@ -1,10 +1,24 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Provider;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/supabase/supabase_providers.dart';
+import '../../onboarding/domain/profile.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_user.dart';
 
 part 'auth_providers.g.dart';
+
+/// "Entrar como…" na tela de login, só com `BACKEND=fixtures`: os perfis de
+/// amostra e a função que loga como um deles. Null em produção (o bloco nem
+/// aparece). Sobrescrito em `fixtureOverrides`.
+class FixtureLoginOptions {
+  const FixtureLoginOptions({required this.users, required this.signIn});
+
+  final List<Profile> users;
+  final Future<void> Function(Profile user) signIn;
+}
+
+final fixtureLoginProvider = Provider<FixtureLoginOptions?>((ref) => null);
 
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) =>
@@ -45,7 +59,7 @@ class AuthController extends _$AuthController {
     final result = await AsyncValue.guard(
       () => _repo.signUpWithEmail(email: email, password: password, displayName: displayName),
     );
-    state = result.hasError ? AsyncError(result.error!, result.stackTrace!) : const AsyncData(null);
+    if (ref.mounted) state = result.hasError ? AsyncError(result.error!, result.stackTrace!) : const AsyncData(null);
     return result.value;
   }
 
@@ -59,7 +73,10 @@ class AuthController extends _$AuthController {
 
   Future<bool> _run(Future<void> Function() action) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(action);
-    return !state.hasError;
+    final result = await AsyncValue.guard(action);
+    // sair derruba a tela que observava este controller (autoDispose) antes do
+    // await voltar; sem o guard, `state =` lança "Ref ... disposed"
+    if (ref.mounted) state = result;
+    return !result.hasError;
   }
 }

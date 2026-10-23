@@ -14,6 +14,7 @@ import 'package:watchlog/features/import_netflix/presentation/import_providers.d
 import 'package:watchlog/features/import_netflix/presentation/import_review_screen.dart';
 import 'package:watchlog/features/import_netflix/presentation/import_screen.dart';
 import 'package:watchlog/features/onboarding/presentation/my_profile_provider.dart';
+import 'package:watchlog/features/social/presentation/onboarding_follow_screen.dart';
 
 import '../../../helpers/provider_container_holder.dart';
 import '../../../helpers/pump_app.dart';
@@ -175,7 +176,7 @@ void main() {
     expect(h.imports.candidates.single.candidates.length, 2, reason: 'anime e live action');
   });
 
-  testWidgets('no onboarding: importar, "Revisar depois" conclui o onboarding', (tester) async {
+  testWidgets('no onboarding: importar, "Revisar depois" segue para encontrar amigos, que conclui o onboarding', (tester) async {
     final h = harness();
     final holder = ProviderContainerHolder();
     await pumpScreen(
@@ -192,7 +193,10 @@ void main() {
       diary: h.store,
       imports: h.imports,
       overrides: [csvPickerProvider.overrideWithValue(FakeCsvPicker(sampleNetflixCsvBytes()))],
-      routes: {'/import/review': (_) => const ImportReviewScreen()},
+      routes: {
+        '/import/review': (_) => const ImportReviewScreen(),
+        '/onboarding/follow': (s) => OnboardingFollowScreen(reviewAfter: s.uri.queryParameters['review'] == '1'),
+      },
     );
     await tester.pumpAndSettle();
     expect(find.text('Agora não'), findsOneWidget);
@@ -202,6 +206,10 @@ void main() {
     expect(find.text('9 títulos importados, 4 para revisar'), findsOneWidget);
     expect(holder.container.read(myProfileProvider).value?.isOnboarded, isFalse);
     await tester.tap(find.text('Revisar depois'));
+    await tester.pumpAndSettle();
+    expect(find.byType(OnboardingFollowScreen), findsOneWidget, reason: 'última etapa: encontrar amigos');
+    expect(holder.container.read(myProfileProvider).value?.isOnboarded, isFalse);
+    await tester.tap(find.byKey(const Key('onboarding-finish')));
     await tester.pumpAndSettle();
     expect(holder.container.read(myProfileProvider).value?.isOnboarded, isTrue);
   });

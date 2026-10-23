@@ -11,7 +11,8 @@ import '../../../core/widgets/poster_image.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_providers.dart';
 
-/// Busca de títulos (TMDB via `catalog-search`). Pessoas (@) chegam na fase 06.
+/// Busca de títulos (TMDB via `catalog-search`). O ícone de pessoa leva à
+/// busca por `@` (`/search/users`, fase 06).
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
 
@@ -81,6 +82,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             setState(() => _query = v.trim());
           },
         ),
+        actions: [
+          IconButton(
+            key: const Key('search-people'),
+            tooltip: 'Pessoas',
+            icon: const Icon(Icons.person_search_outlined),
+            onPressed: () => context.push(Routes.searchUsers),
+          ),
+        ],
       ),
       body: _query.isEmpty
           ? const EmptyView(

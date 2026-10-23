@@ -14,11 +14,30 @@ import '../../features/profile/domain/profile_stats.dart';
 import 'fixture_auth_repository.dart';
 import 'fixture_data.dart';
 
-/// Diário, listas e perfis alheios em memória, compartilhados pelos três
-/// repositórios de amostra. Nasce com alguns registros para quem loga (perfil
-/// cheio no emulador) e com dois perfis de terceiros: `@foxer` (público) e
-/// `@camila` (privado), para a interface de privacidade ser visível sem a
-/// fase 06 (seguir). `seed: false` dá um diário vazio para os testes.
+/// O que a rede social de amostra (`FixtureSocialStore`, fase 06) decide pelo
+/// diário: visibilidade (mesma regra de `can_view_content`), contadores de
+/// seguidores e os eventos que no banco são triggers (diário → feed, lista →
+/// feed). Sem rede ligada, o diário cai no comportamento antigo (privado fechado).
+abstract class FixtureSocialHooks {
+  bool canViewContent(String viewer, String owner);
+  bool canViewProfile(String viewer, String target);
+  int followersCount(String userId);
+  int followingCount(String userId);
+  void onEntrySeeded(Entry entry);
+  void onEntryUpserted(Entry? previous, Entry saved);
+  void onEntryRemoved(Entry entry);
+  void onListCreated(ListModel list);
+  void onListUpdated(ListModel previous, ListModel updated);
+  void onListDeleted(String listId);
+  void onPrivacyChanged(String userId, {required bool isPrivate});
+}
+
+/// Diário, listas e perfis em memória, compartilhados pelos repositórios de
+/// amostra. Nasce com alguns registros para quem loga (perfil cheio no
+/// emulador) e com três perfis de terceiros: `@foxer` (público), `@camila`
+/// (privado) e `@vini` (público), que também podem ser usados para entrar
+/// (tela de login com fixtures) e demonstrar as duas pontas da rede social.
+/// `seed: false` dá um diário vazio para os testes.
 class FixtureDiaryStore {
   FixtureDiaryStore({this.seed = true, DateTime Function()? clock}) : _clock = clock ?? DateTime.now {
     _seedOthers();
@@ -26,6 +45,10 @@ class FixtureDiaryStore {
 
   final bool seed;
   final DateTime Function() _clock;
+
+  /// Rede social de amostra, ligada por `FixtureSocialStore` (null nos testes
+  /// que só exercitam o diário).
+  FixtureSocialHooks? social;
 
   /// `'$userId|$titleId'` → registro
   final Map<String, Entry> entries = {};
@@ -52,9 +75,25 @@ class FixtureDiaryStore {
     onboardedAt: DateTime(2026, 9, 12),
     createdAt: DateTime(2026, 9, 12),
   );
-  static final others = {foxer.username: foxer, camila.username: camila};
+  static final vini = Profile(
+    id: 'fixture-vini',
+    username: 'vini',
+    displayName: 'Vini',
+    bio: 'Sócio do Foxer. Terror, documentário e o que der na telha.',
+    onboardedAt: DateTime(2026, 9, 20),
+    createdAt: DateTime(2026, 9, 20),
+  );
+  static final others = {foxer.username: foxer, camila.username: camila, vini.username: vini};
 
-  /// Quem o usuário logado "segue" (aceito). Vazio: Camila continua fechada.
+  /// Todos os perfis conhecidos por id: os três de amostra e quem logar com
+  /// e-mail (o `FixtureProfileRepository` registra aqui).
+  final Map<String, Profile> profiles = {foxer.id: foxer, camila.id: camila, vini.id: vini};
+
+  Profile? profileById(String id) => profiles[id];
+
+  Profile? profileByUsername(String username) => profiles.values.where((p) => p.username == username).firstOrNull;
+
+  /// Quem o usuário logado "segue" (aceito) quando não há rede social ligada.
   final Set<String> following = {};
 
   static Title titleById(String id) => fixtureTitles.firstWhere((t) => t.title.id == id).title;
@@ -66,8 +105,9 @@ class FixtureDiaryStore {
   String nextId(String prefix) => '$prefix-${(++_ids).toString().padLeft(4, '0')}';
 
   /// Primeiro acesso do usuário logado: um diário que dá vontade de mostrar.
+  /// Os três perfis de amostra já têm o deles (`_seedOthers`).
   void ensureSeeded(String userId) {
-    if (!seed || _seeded.contains(userId)) return;
+    if (!seed || _seeded.contains(userId) || others.values.any((p) => p.id == userId)) return;
     _seeded.add(userId);
     final now = _clock();
     final onePiece = titleByTmdb(37854);
@@ -103,6 +143,11 @@ class FixtureDiaryStore {
     _put(camila.id, titleByTmdb(100088), EntryStatus.watched, rating: 5, review: 'Chorei no 3.', watchedAt: DateTime(2026, 10, 3));
     _put(camila.id, titleByTmdb(136315), EntryStatus.watched, rating: 4, watchedAt: DateTime(2026, 9, 9));
     _newList(camila.id, const ListDraft(name: 'Comfort'), DateTime(2026, 10, 4));
+    // Vini: o terceiro da demonstração (A segue B, interagem, A bloqueia B).
+    _put(vini.id, titleByTmdb(693134), EntryStatus.watched,
+        rating: 4.5, review: 'Villeneuve não erra. O verme no IMAX é outra coisa.', watchedAt: DateTime(2026, 10, 21));
+    _put(vini.id, titleByTmdb(872585), EntryStatus.watched, rating: 4, watchedAt: DateTime(2026, 10, 15));
+    _put(vini.id, titleByTmdb(100088), EntryStatus.watching, season: 2, episode: 3, watchedAt: DateTime(2026, 10, 22));
   }
 
   void _put(
@@ -118,7 +163,7 @@ class FixtureDiaryStore {
     DateTime? watchedAt,
   }) {
     final stamp = watchedAt ?? _clock();
-    entries[key(userId, title.id)] = Entry(
+    final entry = Entry(
       id: nextId('entry'),
       userId: userId,
       titleId: title.id,
@@ -137,7 +182,14 @@ class FixtureDiaryStore {
       updatedAt: stamp,
       title: title,
     );
+    entries[key(userId, title.id)] = entry;
+    // registro de amostra vira atividade na data em que "aconteceu"
+    social?.onEntrySeeded(entry);
   }
+
+  /// Registros de amostra já criados (a rede social lê ao se ligar, porque os
+  /// três perfis são semeados no construtor, antes dela existir).
+  Iterable<Entry> get seededEntries => entries.values;
 
   ListModel _newList(String userId, ListDraft draft, DateTime at) {
     final list = ListModel(
@@ -162,10 +214,13 @@ class FixtureDiaryStore {
     lists[listId] = lists[listId]!.copyWith(itemCount: current.length);
   }
 
-  /// Mesma regra de `can_view_content`: dono sempre; público sim; privado só seguidor.
+  /// Mesma regra de `can_view_content`: dono sempre; bloqueio nunca; público
+  /// sim; privado só seguidor aceito. Com a rede social ligada, é ela que sabe
+  /// de follows e bloqueios.
   bool canView(String viewer, String owner) {
     if (viewer == owner) return true;
-    final profile = others.values.where((p) => p.id == owner).firstOrNull;
+    if (social != null) return social!.canViewContent(viewer, owner);
+    final profile = profiles[owner];
     if (profile == null) return true; // outro usuário de amostra sem cartão: trata como público
     return !profile.isPrivate || following.contains(owner);
   }
@@ -181,6 +236,7 @@ class FixtureDiaryStore {
     final saved = optimisticEntry(previous, d, userId: userId, title: title, now: _clock())
         .copyWith(id: previous?.id ?? nextId('entry'), source: 'manual');
     entries[key(userId, d.titleId)] = saved;
+    social?.onEntryUpserted(previous, saved);   // trigger entries_log_activity
     return saved;
   }
 
@@ -216,12 +272,20 @@ class FixtureDiaryStore {
     );
   }
 
-  void remove(String userId, String titleId) => entries.remove(key(userId, titleId));
+  void remove(String userId, String titleId) {
+    final removed = entries.remove(key(userId, titleId));
+    if (removed != null) social?.onEntryRemoved(removed);   // atividades caem em cascata
+  }
 
-  ListModel createList(String userId, ListDraft draft) => _newList(userId, draft, _clock());
+  ListModel createList(String userId, ListDraft draft) {
+    final list = _newList(userId, draft, _clock());
+    social?.onListCreated(list);   // trigger lists_log_activity
+    return list;
+  }
 
   ListModel updateList(String listId, ListDraft draft) {
-    final updated = lists[listId]!.copyWith(
+    final previous = lists[listId]!;
+    final updated = previous.copyWith(
       name: draft.name,
       description: draft.description,
       isPrivate: draft.isPrivate,
@@ -229,12 +293,14 @@ class FixtureDiaryStore {
       updatedAt: _clock(),
     );
     lists[listId] = updated;
+    social?.onListUpdated(previous, updated);   // trigger lists_sync_activity (0005)
     return updated;
   }
 
   void deleteList(String listId) {
     lists.remove(listId);
     items.remove(listId);
+    social?.onListDeleted(listId);
   }
 
   void addItem(String listId, String titleId) => _addItem(listId, titleId);
@@ -263,8 +329,8 @@ class FixtureDiaryStore {
     final visibleLists = lists.values.where((l) => l.userId == profileId && (!l.isPrivate || viewer == profileId));
     final isOther = others.values.any((p) => p.id == profileId);
     return ProfileCounts(
-      followers: isOther ? 128 : 3,
-      following: isOther ? 64 : 5,
+      followers: social?.followersCount(profileId) ?? (isOther ? 128 : 3),
+      following: social?.followingCount(profileId) ?? (isOther ? 64 : 5),
       watched: mine.where((e) => e.status == EntryStatus.watched).length,
       reviews: mine.where((e) => e.hasReview).length,
       lists: visibleLists.length,
@@ -477,31 +543,37 @@ class FixtureListsRepository implements ListsRepository {
   }
 }
 
-/// Perfil em memória: nasce com @ provisório e sem onboarding, como o trigger
-/// do banco faria. Conhece `@foxer` e `@camila` (FixtureDiaryStore).
+/// Perfil em memória: quem entra por e-mail nasce com @ provisório e sem
+/// onboarding, como o trigger do banco faria; `@foxer`, `@camila` e `@vini`
+/// (FixtureDiaryStore) já estão prontos e podem ser o usuário logado.
 class FixtureProfileRepository implements ProfileRepository {
-  FixtureProfileRepository(this._auth, this._store, {this.latency = const Duration(milliseconds: 200), Profile? initial})
-      : _profile = initial;
+  FixtureProfileRepository(this._auth, this._store, {this.latency = const Duration(milliseconds: 200), Profile? initial}) {
+    if (initial != null) _store.profiles[initial.id] = initial;
+  }
 
   final FixtureAuthRepository _auth;
   final FixtureDiaryStore _store;
   final Duration latency;
-  Profile? _profile;
 
   /// @ já tomados, para a tela de username ter o caso "em uso".
-  static const taken = {'foxer', 'camila', 'rafael'};
+  static const taken = {'foxer', 'camila', 'vini', 'rafael'};
 
   Profile get _current {
     final user = _auth.currentUser;
     if (user == null) throw const AppException('unauthorized', 'Sessão expirada. Entre de novo.');
-    return _profile ??= Profile(
-      id: user.id,
-      username: 'u_${user.id.hashCode.toRadixString(16).padLeft(10, '0').substring(0, 10)}',
-      displayName: user.displayName,
-      avatarUrl: user.avatarUrl,
-      createdAt: DateTime.now(),
+    return _store.profiles.putIfAbsent(
+      user.id,
+      () => Profile(
+        id: user.id,
+        username: 'u_${user.id.hashCode.toRadixString(16).padLeft(10, '0').substring(0, 10)}',
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        createdAt: DateTime.now(),
+      ),
     );
   }
+
+  Profile _save(Profile p) => _store.profiles[p.id] = p;
 
   @override
   Future<Profile> getMyProfile() async {
@@ -518,17 +590,17 @@ class FixtureProfileRepository implements ProfileRepository {
   @override
   Future<Profile> saveUsername(String username, {String? displayName}) async {
     await Future<void>.delayed(latency);
-    if (taken.contains(username)) throw const AppException('taken', 'Esse @ já está em uso.');
-    return _profile = _current.copyWith(
+    if (taken.contains(username) && username != _current.username) throw const AppException('taken', 'Esse @ já está em uso.');
+    return _save(_current.copyWith(
       username: username,
       displayName: (displayName == null || displayName.trim().isEmpty) ? _current.displayName : displayName.trim(),
-    );
+    ));
   }
 
   @override
   Future<Profile> completeOnboarding() async {
     await Future<void>.delayed(latency);
-    return _profile = _current.copyWith(onboardedAt: DateTime.now());
+    return _save(_current.copyWith(onboardedAt: DateTime.now()));
   }
 
   @override
@@ -536,7 +608,10 @@ class FixtureProfileRepository implements ProfileRepository {
     final me = _current;
     await Future<void>.delayed(latency);
     if (username == me.username) return me;
-    return FixtureDiaryStore.others[username];
+    final p = _store.profileByUsername(username);
+    // bloqueio (nos dois sentidos) esconde o cartão, como a RLS de profiles
+    if (p == null || !(_store.social?.canViewProfile(me.id, p.id) ?? true)) return null;
+    return p;
   }
 
   @override
@@ -545,14 +620,16 @@ class FixtureProfileRepository implements ProfileRepository {
     await Future<void>.delayed(latency);
     String? clean(String? s) => (s == null || s.trim().isEmpty) ? null : s.trim();
     if ((clean(draft.bio)?.length ?? 0) > 280) throw const AppException('invalid', 'Bio até 280 caracteres.');
-    return _profile = me.copyWith(displayName: clean(draft.displayName), bio: clean(draft.bio));
+    return _save(me.copyWith(displayName: clean(draft.displayName), bio: clean(draft.bio)));
   }
 
   @override
   Future<Profile> setPrivate(bool isPrivate) async {
     final me = _current;
     await Future<void>.delayed(latency);
-    return _profile = me.copyWith(isPrivate: isPrivate);
+    final saved = _save(me.copyWith(isPrivate: isPrivate));
+    _store.social?.onPrivacyChanged(me.id, isPrivate: isPrivate);   // trigger profiles_before_update
+    return saved;
   }
 
   @override
@@ -560,7 +637,7 @@ class FixtureProfileRepository implements ProfileRepository {
     final me = _current;
     await Future<void>.delayed(latency);
     // Sem Storage aqui: a URL é fictícia e a tela mostra o placeholder.
-    return _profile = me.copyWith(avatarUrl: 'https://fixtures.invalid/avatars/${me.id}/avatar.jpg?v=${DateTime.now().millisecondsSinceEpoch}');
+    return _save(me.copyWith(avatarUrl: 'https://fixtures.invalid/avatars/${me.id}/avatar.jpg?v=${DateTime.now().millisecondsSinceEpoch}'));
   }
 
   @override

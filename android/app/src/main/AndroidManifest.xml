@@ -33,6 +33,15 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="io.github.joaojleite.watchlog" android:host="login-callback"/>
             </intent-filter>
+            <!-- Link de convite do perfil (fase 06): https://joao-jleite.github.io/plateia/u/<username>
+                 → rota /u/:username. Sem `autoVerify` até a fase 08 publicar o assetlinks.json
+                 nesse host; até lá o Android pergunta "abrir com" (app ou navegador). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="joao-jleite.github.io" android:pathPrefix="/plateia/u/"/>
+            </intent-filter>
         </activity>
         <meta-data
             android:name="flutterEmbedding"

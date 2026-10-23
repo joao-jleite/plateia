@@ -8,6 +8,7 @@ import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/poster_image.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_providers.dart';
+import '../../feed/presentation/checkin_sheet.dart';
 import 'register_bar.dart';
 import 'where_to_watch_section.dart';
 
@@ -98,6 +99,9 @@ class _TitleBody extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         RegisterBar(detail: detail),
+        const SizedBox(height: 8),
+        // check-in "assistindo agora" (fase 06): faixa no feed e no Início por 3 h
+        CheckinButton(title: t),
         const SizedBox(height: 20),
         WhereToWatchSection(detail: detail),
         if (t.overview != null && t.overview!.isNotEmpty) ...[

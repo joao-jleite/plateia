@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../core/errors/app_exception.dart';
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/domain/auth_user.dart';
+import '../../features/onboarding/domain/profile.dart';
 import '../../features/settings/data/account_repository.dart';
 
 /// Auth em memória: qualquer e-mail com senha de 6+ caracteres entra; a sessão
@@ -51,6 +52,14 @@ class FixtureAuthRepository implements AuthRepository {
   Future<void> signInWithGoogle() async {
     await Future<void>.delayed(latency);
     _set(const AuthUser(id: 'fixture-google', email: 'pessoa@gmail.com', displayName: 'Pessoa do Google'));
+  }
+
+  /// Entrar como um dos perfis de amostra (`@foxer`, `@camila`, `@vini`): a
+  /// tela de login com fixtures oferece os três para demonstrar as duas pontas
+  /// da rede social (fase 06). O id do usuário é o id do perfil.
+  Future<void> signInAs(Profile profile) async {
+    await Future<void>.delayed(latency);
+    _set(AuthUser(id: profile.id, email: '${profile.username}@fixtures.local', displayName: profile.displayName));
   }
 
   @override

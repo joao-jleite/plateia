@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:watchlog/features/import_netflix/presentation/import_screen.dart';
 import 'package:watchlog/features/onboarding/presentation/my_profile_provider.dart';
 import 'package:watchlog/features/onboarding/presentation/username_screen.dart';
+import 'package:watchlog/features/social/presentation/onboarding_follow_screen.dart';
 
 import '../../../helpers/provider_container_holder.dart';
 import '../../../helpers/pump_app.dart';
@@ -16,7 +17,10 @@ void main() {
         holder.capture(context);
         return const UsernameScreen();
       }),
-      routes: {'/onboarding/import': (_) => const ImportScreen(onboarding: true)},
+      routes: {
+        '/onboarding/import': (_) => const ImportScreen(onboarding: true),
+        '/onboarding/follow': (_) => const OnboardingFollowScreen(),
+      },
     );
     await tester.pumpAndSettle();
 
@@ -38,8 +42,12 @@ void main() {
     expect(find.byType(ImportScreen), findsOneWidget);
     expect(holder.container.read(myProfileProvider).value?.username, 'camila_27');
 
-    // "Agora não" fecha o onboarding.
+    // "Agora não" leva à etapa de encontrar amigos (fase 06); "Concluir" fecha o onboarding.
     await tester.tap(find.text('Agora não'));
+    await tester.pumpAndSettle();
+    expect(find.byType(OnboardingFollowScreen), findsOneWidget);
+    expect(holder.container.read(myProfileProvider).value?.isOnboarded, isFalse);
+    await tester.tap(find.byKey(const Key('onboarding-finish')));
     await tester.pumpAndSettle();
     expect(holder.container.read(myProfileProvider).value?.isOnboarded, isTrue);
   });

@@ -7,27 +7,36 @@ import '../../diary/presentation/diary_providers.dart';
 import '../../lists/presentation/lists_providers.dart';
 import '../../onboarding/domain/profile.dart';
 import '../../onboarding/presentation/my_profile_provider.dart';
+import '../../social/presentation/social_providers.dart';
 import '../domain/profile_stats.dart';
 
 part 'profile_providers.g.dart';
 
-/// Cartão de um perfil pelo @. Null = não existe (ou bloqueio).
+/// Cartão de um perfil pelo @. Null = não existe (ou bloqueio). Recarrega
+/// quando a rede muda (bloquear some com o cartão).
 @riverpod
-Future<Profile?> profileByUsername(Ref ref, String username) =>
-    ref.watch(profileRepositoryProvider).getByUsername(username);
+Future<Profile?> profileByUsername(Ref ref, String username) {
+  ref.watch(socialVersionProvider);
+  return ref.watch(profileRepositoryProvider).getByUsername(username);
+}
 
-/// Contadores (`profile_counts`). Recarrega quando meu diário ou listas mudam.
+/// Contadores (`profile_counts`). Recarrega quando meu diário, listas ou a
+/// rede (seguir/aceitar) mudam.
 @riverpod
 Future<ProfileCounts> profileCounts(Ref ref, String profileId) {
   ref.watch(diaryVersionProvider);
   ref.watch(listsVersionProvider);
+  ref.watch(socialVersionProvider);
   return ref.watch(profileRepositoryProvider).counts(profileId);
 }
 
-/// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil?
+/// Posso ver o conteúdo (diário, listas, estatísticas) desse perfil? Muda ao
+/// ser aceito num perfil privado ou ao bloquear.
 @riverpod
-Future<bool> canViewContent(Ref ref, String profileId) =>
-    ref.watch(profileRepositoryProvider).canViewContent(profileId);
+Future<bool> canViewContent(Ref ref, String profileId) {
+  ref.watch(socialVersionProvider);
+  return ref.watch(profileRepositoryProvider).canViewContent(profileId);
+}
 
 /// Diário de um perfil por aba, paginado de 60 em 60 ("Mostrar mais").
 @riverpod

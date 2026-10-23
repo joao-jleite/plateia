@@ -39,6 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     listenAuthErrors(context, ref);
     final busy = ref.watch(authControllerProvider).isLoading;
+    final fixtureLogin = ref.watch(fixtureLoginProvider);
     final theme = Theme.of(context);
 
     return AuthScaffold(
@@ -105,6 +106,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onPressed: busy ? null : () => context.push(Routes.signup),
           child: const Text('Criar conta'),
         ),
+        // Só com BACKEND=fixtures: entrar como um dos perfis de amostra para
+        // demonstrar as duas pontas da rede social (fase 06).
+        if (fixtureLogin != null) ...[
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
+          Text('Entrar como (dados de amostra)', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.outline)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final u in fixtureLogin.users)
+                ActionChip(
+                  key: Key('fixture-login-${u.username}'),
+                  avatar: Icon(u.isPrivate ? Icons.lock_outline : Icons.person_outline, size: 16),
+                  label: Text('@${u.username}'),
+                  onPressed: busy ? null : () => fixtureLogin.signIn(u),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }

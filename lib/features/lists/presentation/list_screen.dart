@@ -9,6 +9,8 @@ import '../../../core/router/routes.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/poster_image.dart';
 import '../../auth/presentation/auth_providers.dart';
+import '../../social/domain/social_models.dart';
+import '../../social/presentation/report_sheet.dart';
 import '../domain/list_models.dart';
 import 'list_edit_dialog.dart';
 import 'lists_providers.dart';
@@ -42,7 +44,15 @@ class ListScreen extends ConsumerWidget {
               icon: const Icon(Icons.delete_outline),
               onPressed: () => unawaited(_delete(context, ref, model)),
             ),
-          ],
+          ] else if (model != null)
+            // lista de outra pessoa: denunciar (SPEC §5.10)
+            PopupMenuButton<String>(
+              tooltip: 'Mais',
+              onSelected: (_) => unawaited(showReportSheet(context, target: ReportTarget.list, targetId: model.id)),
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'report', child: ListTile(leading: Icon(Icons.flag_outlined), title: Text('Denunciar lista'))),
+              ],
+            ),
         ],
       ),
       body: AsyncView<ListModel?>(

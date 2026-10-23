@@ -19,12 +19,18 @@ import '../../lists/presentation/list_edit_dialog.dart';
 import '../../lists/presentation/lists_providers.dart';
 import '../../onboarding/domain/profile.dart';
 import '../../onboarding/presentation/my_profile_provider.dart';
+import '../../social/domain/social_models.dart';
+import '../../social/presentation/follow_button.dart';
+import '../../social/presentation/report_sheet.dart';
+import '../../social/presentation/share_profile.dart';
+import '../../social/presentation/social_providers.dart';
 import '../domain/profile_stats.dart';
 import 'profile_providers.dart';
 
 /// Perfil (SPEC §4, `/profile` para o meu e `/profile/:username` para os
 /// outros): cartão com contadores, abas Assisti / Quero ver / Listas / Reviews.
-/// Perfil privado mostra o cartão e esconde as abas (SPEC §5.3).
+/// Perfil privado mostra o cartão e esconde as abas (SPEC §5.3). No de outra
+/// pessoa: botão seguir e menu compartilhar / bloquear / denunciar (fase 06).
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key, this.username});
 
@@ -54,6 +60,7 @@ class ProfileScreen extends ConsumerWidget {
               icon: const Icon(Icons.settings_outlined),
               onPressed: () => context.push(Routes.settings),
             ),
+          if (profile != null) _ProfileMenu(profile: profile, isMe: isMe),
         ],
       ),
       body: AsyncView<Profile?>(
@@ -106,6 +113,77 @@ class _ProfileBody extends ConsumerWidget {
   }
 }
 
+/// Menu ⋮ do perfil: compartilhar (os dois), pedidos (meu, privado),
+/// bloquear e denunciar (dos outros). Bloquear pede confirmação e sai do
+/// perfil: a RLS esconde o cartão nos dois sentidos (SPEC §5.4).
+class _ProfileMenu extends ConsumerWidget {
+  const _ProfileMenu({required this.profile, required this.isMe});
+
+  final Profile profile;
+  final bool isMe;
+
+  Future<void> _block(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Bloquear @${profile.username}?'),
+        content: const Text(
+          'Vocês deixam de se seguir e nenhum dos dois vê o perfil, o diário, as atividades, as curtidas ou os comentários do outro. '
+          'A pessoa não é avisada. Dá para desbloquear em Configurações → Bloqueados.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          FilledButton(
+            key: const Key('confirm-block'),
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Bloquear'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final error = await ref.read(socialActionsProvider.notifier).block(profile.id);
+    if (!context.mounted) return;
+    if (error != null) {
+      messenger.showSnackBar(SnackBar(content: Text('Não deu para bloquear. ($error)')));
+      return;
+    }
+    if (context.canPop()) context.pop();
+    messenger.showSnackBar(SnackBar(content: Text('@${profile.username} bloqueado.')));
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      key: const Key('profile-menu'),
+      tooltip: 'Mais',
+      onSelected: (v) {
+        switch (v) {
+          case 'share':
+            unawaited(shareProfile(ref, profile));
+          case 'requests':
+            context.push(Routes.followRequests);
+          case 'block':
+            unawaited(_block(context, ref));
+          case 'report':
+            unawaited(showReportSheet(context, target: ReportTarget.profile, targetId: profile.id));
+        }
+      },
+      itemBuilder: (_) => [
+        const PopupMenuItem(value: 'share', child: ListTile(leading: Icon(Icons.share_outlined), title: Text('Compartilhar perfil'))),
+        if (isMe && profile.isPrivate)
+          const PopupMenuItem(value: 'requests', child: ListTile(leading: Icon(Icons.how_to_reg_outlined), title: Text('Pedidos para seguir'))),
+        if (!isMe) ...[
+          const PopupMenuItem(value: 'block', child: ListTile(leading: Icon(Icons.block_outlined), title: Text('Bloquear'))),
+          const PopupMenuItem(value: 'report', child: ListTile(leading: Icon(Icons.flag_outlined), title: Text('Denunciar'))),
+        ],
+      ],
+    );
+  }
+}
+
 class _Header extends ConsumerWidget {
   const _Header({required this.profile, required this.isMe});
 
@@ -116,6 +194,8 @@ class _Header extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final counts = ref.watch(profileCountsProvider(profile.id)).value ?? const ProfileCounts();
+    final followsMe = !isMe && (ref.watch(isFollowingMeProvider(profile.id)).value ?? false);
+    final pending = isMe && profile.isPrivate ? (ref.watch(pendingRequestsProvider).value?.length ?? 0) : 0;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
@@ -136,7 +216,10 @@ class _Header extends ConsumerWidget {
                         if (profile.isPrivate) Icon(Icons.lock_outline, size: 18, color: theme.colorScheme.outline),
                       ],
                     ),
-                    Text('@${profile.username}', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                    Text(
+                      followsMe ? '@${profile.username} · segue você' : '@${profile.username}',
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
+                    ),
                     if (profile.bio != null && profile.bio!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(profile.bio!, maxLines: 3, overflow: TextOverflow.ellipsis),
@@ -152,19 +235,54 @@ class _Header extends ConsumerWidget {
               _Counter(label: 'Assistidos', value: counts.watched),
               _Counter(label: 'Reviews', value: counts.reviews),
               _Counter(label: 'Listas', value: counts.lists),
-              _Counter(label: 'Seguidores', value: counts.followers),
-              _Counter(label: 'Seguindo', value: counts.following),
+              _Counter(label: 'Seguidores', value: counts.followers, onTap: () => context.push(Routes.followers(profile.username))),
+              _Counter(label: 'Seguindo', value: counts.following, onTap: () => context.push(Routes.following(profile.username))),
             ],
           ),
-          if (isMe) ...[
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(40)),
-              onPressed: () => context.push(Routes.editProfile),
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: const Text('Editar perfil'),
+          const SizedBox(height: 8),
+          if (isMe)
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(40)),
+                    onPressed: () => context.push(Routes.editProfile),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('Editar perfil'),
+                  ),
+                ),
+                if (profile.isPrivate) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      key: const Key('follow-requests'),
+                      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(40)),
+                      onPressed: () => context.push(Routes.followRequests),
+                      icon: Badge.count(count: pending, isLabelVisible: pending > 0, child: const Icon(Icons.how_to_reg_outlined, size: 18)),
+                      label: Text(pending > 0 ? 'Pedidos ($pending)' : 'Pedidos'),
+                    ),
+                  ),
+                ],
+              ],
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: FollowButton(profile: profile),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 40)),
+                  onPressed: () => unawaited(shareProfile(ref, profile)),
+                  icon: const Icon(Icons.share_outlined, size: 18),
+                  label: const Text('Compartilhar'),
+                ),
+              ],
             ),
-          ],
         ],
       ),
     );
@@ -172,20 +290,28 @@ class _Header extends ConsumerWidget {
 }
 
 class _Counter extends StatelessWidget {
-  const _Counter({required this.label, required this.value});
+  const _Counter({required this.label, required this.value, this.onTap});
 
   final String label;
   final int value;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Expanded(
-      child: Column(
-        children: [
-          Text('$value', style: theme.textTheme.titleMedium),
-          Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline), maxLines: 1, overflow: TextOverflow.ellipsis),
-        ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            children: [
+              Text('$value', style: theme.textTheme.titleMedium),
+              Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline), maxLines: 1, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -379,16 +505,18 @@ class _ReviewsTab extends ConsumerWidget {
   }
 }
 
-/// Review no perfil: título, nota, data e o texto (borrado se spoiler).
-class ReviewCard extends StatelessWidget {
+/// Review no perfil: título, nota, data e o texto (borrado se spoiler). Review
+/// de outra pessoa tem o menu "Denunciar" (SPEC §5.10).
+class ReviewCard extends ConsumerWidget {
   const ReviewCard({super.key, required this.entry});
 
   final Entry entry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final t = entry.title;
+    final isMine = entry.userId == ref.watch(myProfileProvider).value?.id;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -419,6 +547,14 @@ class ReviewCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (!isMine)
+                    PopupMenuButton<String>(
+                      tooltip: 'Mais',
+                      onSelected: (_) => unawaited(showReportSheet(context, target: ReportTarget.entry, targetId: entry.id)),
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(value: 'report', child: ListTile(leading: Icon(Icons.flag_outlined), title: Text('Denunciar review'))),
+                      ],
+                    ),
                 ],
               ),
             ),

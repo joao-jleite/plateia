@@ -159,6 +159,51 @@ Parser, agrupador, regra de merge, Edge Function `import-match`, migração `000
 - [ ] `import_candidates` com `on_conflict=user_id,raw_name` ignora os repetidos; a fila (`resolved_at is null and not skipped`) some ao resolver/pular; resolver grava a entrada.
 - [ ] Log da função numa importação real: `{fn: import-match, …, upstream_calls: N, items, high, medium, low}` por lote e o tempo por lote de 100.
 
+## Fase 06 · Rede social
+
+Seguir (público aceita na hora; privado vira pedido, com aba de pedidos), feed agrupado por autor e dia, curtir e comentar (com spoiler), check-in "Assistindo agora", busca de pessoas e link de convite, bloquear/denunciar e notificações estão prontos e testados (164 testes Dart, `npm run db:test` 5/5, `deno task test` 30/30), e o fluxo das duas pontas rodou no emulador com os três perfis de amostra (capturas em `docs/capturas/fase06/`). Como nas fases anteriores, **nada rodou contra um projeto Supabase real**. O `plateia-fase06.apk` na Área de Trabalho roda com dados de amostra: na tela de login, "Entrar como" escolhe `@foxer` (público), `@camila` (privado) ou `@vini` (público); sair e entrar com outro mantém o que o anterior fez (a memória é do processo: fechar o app zera tudo).
+
+### O que você roda (depois dos passos das fases 03–05)
+
+- [ ] **1. Migração 0005**: `npm run db:test` (5/5 verde) e `supabase db push`. A `0005_social.sql` cria a view `friends_checkins`, o trigger `lists_sync_activity`, restringe o update de `notifications` à coluna `read_at` e cria um índice em `profiles.username`. `supabase migration list` deve mostrar 0001–0005 remotas.
+- [ ] **2. Contas de teste (seed)**: crie `tools/db/.env` (já no `.gitignore`; a `service_role` **nunca** vai para o app nem para o chat) com:
+  ```
+  SUPABASE_URL=https://<ref>.supabase.co
+  SUPABASE_SERVICE_ROLE_KEY=<service_role: dashboard → Project Settings → API>
+  SEED_PASSWORD=<senha para as 3 contas>      # opcional; sem ela usa "plateia-dev-2026"
+  ```
+  e rode na raiz do repo:
+  ```powershell
+  npm run db:seed-dev:dry          # só imprime o plano, sem rede e sem .env
+  npm run db:seed-dev              # cria ana.seed@example.com (@ana_seed, pública), bruno.seed@example.com (@bruno_seed, privado), carla.seed@example.com (@carla_seed, pública), 20 títulos, 22 registros de diário, 5 follows (carla→bruno fica pendente), 3 curtidas, 2 comentários, 1 lista pública e 1 check-in
+  npm run db:seed-dev -- --reset   # apaga as 3 contas (cascade) para recomeçar
+  ```
+  É idempotente (rodar de novo não duplica) e nunca imprime a chave. Foi testado de ponta a ponta só no Postgres local (`npm run db:test:keep` num terminal e `npm run db:seed-dev:local` noutro: 3 perfis, 20 títulos, 22 entradas → 20 atividades, 10 notificações), não na Admin API real: se `POST /auth/v1/admin/users` devolver um erro que não seja "já existe", me mande a linha. Os títulos entram com `fetched_at = 1970`, então o `catalog-title` renova pôster e dados na primeira abertura (precisa do deploy e do `TMDB_API_KEY`).
+- [ ] **3. Segunda conta no celular** (`flutter run --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=…` ou um APK release com os mesmos defines): a sua conta no celular, `carla.seed@example.com` no emulador. Roteiro: carla busca o seu @ (Feed → ícone de pessoas) → Seguir; você recebe a notificação; no seu Feed, curta e comente uma review dela; ela vê as notificações e abre a atividade; no detalhe de um título toque em "Assistindo agora" e veja a faixa aparecer no Início dela; por fim, Perfil dela → ⋮ → Bloquear e confira que ela não acha mais você na busca nem vê suas atividades. Me mande "verifica a fase 06" que eu confiro pelos logs e pelo dashboard.
+- [ ] **4. Link de convite** (`https://joao-jleite.github.io/plateia/u/<username>`, o que "Compartilhar perfil" manda): o app já responde a esse caminho (intent-filter sem `autoVerify`; o Android pergunta "Abrir com"). Para quem não tem o app, crie o repositório `joao-jleite/plateia` com GitHub Pages e uma página em `u/index.html` que leia o `@` do caminho e mostre "Baixe o Plateia" (uma página estática, sem build). Quando houver domínio próprio, troque `Routes.inviteUrl` e publique `/.well-known/assetlinks.json` para o link abrir direto no app.
+
+### Decisões de spec que merecem o seu olhar (▶ também no `CLAUDE.md`, Decisões de 23/10)
+
+- ▶ **Contadores de curtidas e comentários não são por visualizador**: quem bloqueou (ou foi bloqueado) continua contando no número; o conteúdo dele some, o número fica. Instagram e Letterboxd fazem igual; recalcular por visualizador custaria uma consulta por item do feed.
+- ▶ **Bloquear desfaz os follows nos dois sentidos e desbloquear não refaz nada** (quem quiser segue de novo).
+- ▶ **Dono da atividade apaga comentário alheio** (e o autor apaga o seu); ninguém edita comentário de outro.
+- ▶ **Lista que vira privada some do feed; voltar a público não recria o evento** (senão quem alterna infla o feed).
+- ▶ **Check-in dura 3 h (até 12 h, escolha na folha), um ativo por pessoa, e só aparece na faixa de quem segue você** (view `friends_checkins`); no seu Início aparece sempre, com "Encerrar".
+- ▶ **Denúncias só entram** (`reports`): sem fila de moderação no app. Você lê pelo dashboard (Table Editor → `reports`) e age à mão; se a loja exigir, uma tela de moderação entra depois.
+- ▶ **Feed por fan-out na leitura** (view `feed`), página de 30, agrupado no app por autor + dia, atualizado por puxar para baixo (sem "novos itens" automático).
+
+### O que eu verifico quando o projeto existir
+
+- [ ] PostgREST aceita os embeds com dica de FK usados no app: `follower:profiles!follows_follower_id_fkey(*)`, `actor:profiles!notifications_actor_id_fkey(*)` e `user:profiles(*)`, `title:titles(*)`, `list:lists(*)` na view `feed` (embed em view depende das FKs das tabelas base; se falhar, vira RPC numa `0006` sem mexer na tela).
+- [ ] `feed` com `order(created_at desc)` + `range(0,29)` devolve só atividades de quem sigo (aceito) e minhas, sem bloqueados; `likes.inFilter` marca as minhas curtidas.
+- [ ] `follows` insert devolve o `status` decidido pelo trigger (`pending` para privado); seguir duas vezes (`23505`) relê o estado; seguir quem me bloqueou (`42501`) vira "Não é possível seguir este perfil."
+- [ ] `likes` upsert com `ignoreDuplicates` não gera segunda notificação; apagar a curtida apaga a notificação (trigger).
+- [ ] `notifications`: update só de `read_at` passa pelo grant por coluna; `unreadCount` por `count(exact)` com `range(0,0)`.
+- [ ] `checkins`: o app apaga o anterior e insere o novo (duas chamadas); `friends_checkins` devolve só de quem sigo + eu; `expires_at` até 12 h.
+- [ ] RPC `list_blocked_users` com o JWT do app; bloquear some com follows, curtidas e notificações entre os dois (o teste SQL cobre; confirmar pelo app).
+- [x] ~~O intent-filter de `/plateia/u/<username>` abre o app em `/profile/<username>`~~ → conferido no emulador (`adb shell am start -a android.intent.action.VIEW -d https://joao-jleite.github.io/plateia/u/foxer`); a rota precisou do prefixo `/plateia`. Falta só o `share_plus` abrir a folha nativa no celular (no emulador aparece o seletor do Android).
+- [ ] Ao trocar de conta no mesmo aparelho (sair e entrar com outra), o sino e as listas vêm da conta nova (corrigido no `unreadCount`; confirmar os outros providers `keepAlive` no app real).
+
 ## Para as próximas fases (já dá para adiantar)
 
 - [x] ~~**Supabase**: criar projeto~~ → movido para a fase 02, acima.

@@ -8,10 +8,14 @@ import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/poster_tile.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_providers.dart';
+import '../../feed/presentation/checkin_strip.dart';
+import '../../feed/presentation/feed_providers.dart';
+import '../../notifications/presentation/notifications_bell.dart';
 
-/// Início: seções vindas de `home_sections` (em alta no Brasil, novidades por
-/// streaming destacado). Puxar para atualizar refaz a chamada; o servidor só
-/// vai ao TMDB se o cache tiver mais de 6 h.
+/// Início: faixa "assistindo agora" dos amigos (fase 06) e seções vindas de
+/// `home_sections` (em alta no Brasil, novidades por streaming destacado).
+/// Puxar para atualizar refaz a chamada; o servidor só vai ao TMDB se o cache
+/// tiver mais de 6 h.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -19,9 +23,12 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sections = ref.watch(homeSectionsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Início')),
+      appBar: AppBar(title: const Text('Início'), actions: const [NotificationsBell()]),
       body: RefreshIndicator(
-        onRefresh: () => ref.refresh(homeSectionsProvider.future),
+        onRefresh: () {
+          ref.invalidate(friendsCheckinsProvider);
+          return ref.refresh(homeSectionsProvider.future);
+        },
         child: AsyncView<HomeSections>(
           value: sections,
           onRetry: () => ref.invalidate(homeSectionsProvider),
@@ -33,6 +40,7 @@ class HomeScreen extends ConsumerWidget {
           data: (d) => ListView(
             padding: const EdgeInsets.symmetric(vertical: 12),
             children: [
+              const CheckinStrip(),
               for (final section in d.sections)
                 if (section.items.isNotEmpty) _SectionRow(section: section),
               Padding(

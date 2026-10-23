@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/utils/dates.dart';
-import '../../onboarding/presentation/my_profile_provider.dart';
 import '../data/csv_picker.dart';
 import '../domain/import_pipeline.dart';
 import 'import_progress.dart';
@@ -113,20 +112,13 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         ),
       );
 
+  /// Próxima etapa do onboarding: encontrar amigos (fase 06). É lá que o
+  /// onboarding é concluído; `review=1` abre a revisão da importação depois.
   Future<void> _finishOnboarding({bool thenReview = false}) async {
     setState(() => _finishing = true);
     try {
-      await ref.read(myProfileProvider.notifier).completeOnboarding();
       if (!mounted) return;
-      if (thenReview) {
-        // o router já deixa de redirecionar para o onboarding; vamos ao Início
-        // e abrimos a revisão por cima
-        context.go(Routes.home);
-        unawaited(context.push(Routes.importReview));
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(describeError(e))));
+      context.go(thenReview ? '${Routes.onboardingFollow}?review=1' : Routes.onboardingFollow);
     } finally {
       if (mounted) setState(() => _finishing = false);
     }

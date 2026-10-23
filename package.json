@@ -5,6 +5,9 @@
   "scripts": {
     "db:install": "npm --prefix tools/db install --no-audit --no-fund --loglevel=error",
     "db:test": "npm run db:install && node tools/db/db-test.mjs",
-    "db:test:keep": "npm run db:install && node tools/db/db-test.mjs --keep"
+    "db:test:keep": "npm run db:install && node tools/db/db-test.mjs --keep",
+    "db:seed-dev": "node tools/db/seed-dev.mjs",
+    "db:seed-dev:dry": "node tools/db/seed-dev.mjs --dry-run",
+    "db:seed-dev:local": "node tools/db/seed-dev.mjs --local"
   }
 }
