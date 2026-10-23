@@ -31,6 +31,7 @@ import '../../features/social/presentation/follow_requests_screen.dart';
 import '../../features/social/presentation/onboarding_follow_screen.dart';
 import '../../features/social/presentation/social_providers.dart';
 import '../../features/social/presentation/user_search_screen.dart';
+import '../../features/subscribe/presentation/my_subscriptions_screen.dart';
 import '../../features/subscribe/presentation/subscribe_screen.dart';
 import '../../features/title/presentation/title_screen.dart';
 import '../model/media_type.dart';
@@ -86,6 +87,10 @@ GoRouter appRouter(Ref ref) {
       // atual (voltar devolve a quem chamou: configurações ou o resumo).
       GoRoute(path: Routes.import, parentNavigatorKey: rootNavigatorKey, builder: (_, _) => const ImportScreen()),
       GoRoute(path: Routes.importReview, parentNavigatorKey: rootNavigatorKey, builder: (_, _) => const ImportReviewScreen()),
+
+      // Meus streamings (fase 07): por cima da aba Assinar (e da notificação
+      // do lembrete, que abre esta rota direto).
+      GoRoute(path: Routes.mySubscriptions, parentNavigatorKey: rootNavigatorKey, builder: (_, _) => const MySubscriptionsScreen()),
 
       // Rede social (fase 06): tudo por cima da aba atual, como o detalhe.
       GoRoute(path: Routes.searchUsers, parentNavigatorKey: rootNavigatorKey, builder: (_, _) => const UserSearchScreen()),

@@ -71,7 +71,7 @@ Shell com barra inferior de 5 abas. Entre parênteses, a fase que entrega.
 | **Buscar** `/search`, `/search/users` | títulos (TMDB) e pessoas (@) | 03 · 06 |
 | `/title/:type/:tmdbId` | detalhe, onde assistir, folha Registrar, adicionar à lista | 03 · 04 |
 | **Feed** `/feed`, `/activity/:id` | atividades, curtidas, comentários | 06 |
-| **Assinar** `/subscribe`, `/subscribe/mine` | recomendação, meus streamings, lembretes | 07 |
+| **Assinar** `/subscribe`, `/subscribe/mine` | recomendação com a conta aberta, meus streamings, economia no ano, lembrete local | 07 |
 | **Perfil** `/profile/:username` (+ `/diary`, `/watchlist`, `/lists`, `/reviews`, `/followers`, `/following`, `/stats`) | grade de pôsteres, abas, estatísticas (horas, por streaming, gênero, ano) | 04 |
 | `/list/:id` | lista, ordenação, ranqueada | 04 |
 | `/import`, `/import/review` | importar CSV, revisar duvidosos | 05 |
@@ -79,7 +79,7 @@ Shell com barra inferior de 5 abas. Entre parênteses, a fase que entrega.
 | `/settings` (+ `/privacy`, `/blocked`, `/account`) | perfil privado, bloqueados, apagar conta, sobre e atribuições | 04 · 06 · 08 |
 | `/u/:username` | link de convite (abre o perfil) | 06 |
 
-Até a fase 06 a aba Feed mostra um estado vazio "em breve"; até a 07, a aba Assinar também. Estados de carregando, vazio e erro em toda tela (convenção do `CLAUDE.md`).
+Até a fase 06 a aba Feed mostrava um estado vazio "em breve"; até a 07, a aba Assinar também (as duas estão entregues). Estados de carregando, vazio e erro em toda tela (convenção do `CLAUDE.md`).
 
 ## 5. Regras de negócio
 
@@ -146,6 +146,7 @@ Até a fase 06 a aba Feed mostra um estado vazio "em breve"; até a 07, a aba As
 - **▶ Preços em `provider_prices` nascem como estimativa** (`is_estimate = true`) para a fase 07 ter com o que trabalhar; o João confere no site de cada streaming, corrige pelo dashboard e zera a flag. A tela sempre mostra a data de atualização e a palavra "estimativa" enquanto a flag estiver ligada.
 - Empate: menor preço; persistindo, o que a pessoa já assina; persistindo, ordem de exibição.
 - Lembrete de cancelamento: notificação **local** (sem servidor) 3 dias antes de `renews_on`, só se `remind_before_renewal`.
+- Detalhamento da fase 07 (decisões no `CLAUDE.md`): o ranking ordena pelo **peso** resolvido (meu 1, amigo 0,3) e o "por título" da tela é preço ÷ peso (com só títulos meus é a conta de cabeça); a combinação de dois exige ≥ 3 em peso acrescentado e custo por título menor, também em peso. Título sem linha em `title_sync` é "sem dados"; com cache e sem assinatura cai em "só aluguel/compra", "já grátis", "em outro streaming" (sem preço na lista) ou "em nenhum". Preço com mais de 60 dias ganha aviso no cartão; a linha "Preços de DD/MM" mostra a conferida mais recente. Se eu já assino o melhor, a frase diz isso em vez de mandar assinar. `renews_on` no passado é projetada mês a mês (31 → 30/28) só para a tela e o lembrete; o lembrete é inexato (sem `SCHEDULE_EXACT_ALARM`), toca às 10h e, se os 3 dias já passaram, 1 minuto depois de salvar.
 
 ### 5.10 Conteúdo, moderação e termos
 - Denunciar: perfil, review (entrada), lista, comentário, atividade. Motivos: spam, assédio, ódio, sexual, violência, spoiler, direitos autorais, outro. O denunciante só cria e vê as próprias denúncias; o João trata pelo dashboard do Supabase (`reports.status`) e remove conteúdo quando preciso.

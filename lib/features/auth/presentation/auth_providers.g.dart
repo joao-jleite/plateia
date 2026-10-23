@@ -165,7 +165,7 @@ final class AuthControllerProvider
   AuthController create() => AuthController();
 }
 
-String _$authControllerHash() => r'e8c66e9ae64f578fc9935f2a89c0b00bb838ab47';
+String _$authControllerHash() => r'b43222234653f4996cb4f86d9e8fe65404b33db1';
 
 /// Ações de login/cadastro. O estado é `AsyncValue<void>`: loading enquanto a
 /// chamada roda e error para a tela mostrar o SnackBar.

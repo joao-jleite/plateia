@@ -107,6 +107,72 @@ final class HomeSectionsProvider
 
 String _$homeSectionsHash() => r'c2018f3c1d7513ec58f5dac698b505675ef68249';
 
+/// Sobe quando um detalhe de título chega com "onde assistir" renovado (a tela
+/// do título avisa). A aba Assinar observa: um título "sem dados" entra na
+/// conta assim que alguém abre o detalhe dele, sem puxar para atualizar.
+
+@ProviderFor(TitleCacheVersion)
+final titleCacheVersionProvider = TitleCacheVersionProvider._();
+
+/// Sobe quando um detalhe de título chega com "onde assistir" renovado (a tela
+/// do título avisa). A aba Assinar observa: um título "sem dados" entra na
+/// conta assim que alguém abre o detalhe dele, sem puxar para atualizar.
+final class TitleCacheVersionProvider
+    extends $NotifierProvider<TitleCacheVersion, int> {
+  /// Sobe quando um detalhe de título chega com "onde assistir" renovado (a tela
+  /// do título avisa). A aba Assinar observa: um título "sem dados" entra na
+  /// conta assim que alguém abre o detalhe dele, sem puxar para atualizar.
+  TitleCacheVersionProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'titleCacheVersionProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$titleCacheVersionHash();
+
+  @$internal
+  @override
+  TitleCacheVersion create() => TitleCacheVersion();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int>(value),
+    );
+  }
+}
+
+String _$titleCacheVersionHash() => r'9b95b9f58525ef3e5b9f25d58a071863ab58982e';
+
+/// Sobe quando um detalhe de título chega com "onde assistir" renovado (a tela
+/// do título avisa). A aba Assinar observa: um título "sem dados" entra na
+/// conta assim que alguém abre o detalhe dele, sem puxar para atualizar.
+
+abstract class _$TitleCacheVersion extends $Notifier<int> {
+  int build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<int, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<int, int>,
+              int,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
 /// Detalhe do título com cache em memória por (tipo, id) enquanto o app vive.
 /// O cache de verdade (30 d / 7 d) está no Postgres, atrás da Edge Function.
 

@@ -4,7 +4,7 @@ description: "Plateia (codinome): o que você assiste em todos os streamings, on
 publish_to: "none"
 
 # versionCode = o número depois do "+". A fase 08 passa a controlar isso no release.
-version: 0.6.0+6
+version: 0.7.0+7
 
 environment:
   sdk: ^3.12.2
@@ -41,6 +41,9 @@ dependencies:
   crypto: ^3.0.7
   # Compartilhar o link do perfil (/u/:username) pela folha nativa do Android
   share_plus: ^13.3.1
+  flutter_local_notifications: ^22.3.2
+  timezone: ^0.11.2
+  flutter_timezone: ^5.1.1
 
 dev_dependencies:
   flutter_test:

@@ -258,7 +258,7 @@ final class CommentsProvider
   }
 }
 
-String _$commentsHash() => r'55bb934cc4ea374c3e4fcac1145b1e290ccbb02a';
+String _$commentsHash() => r'b3a3f47ff997a0f01b5ce6569002e36427a069c2';
 
 /// Comentários de uma atividade, com adicionar e apagar otimistas. O autor do
 /// comentário e o dono da atividade podem apagar (a RLS confere).

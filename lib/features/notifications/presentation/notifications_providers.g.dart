@@ -159,7 +159,7 @@ final class UnreadCountProvider
   }
 }
 
-String _$unreadCountHash() => r'18994b3f9956b08dbf9d5dbbcbcdc53d45cc0ebe';
+String _$unreadCountHash() => r'f7a6441c3bebcaa2e2bdf23773402c72b7e6ee53';
 
 /// Lista (`/notifications`), página de 30, marcar como lidas otimista.
 

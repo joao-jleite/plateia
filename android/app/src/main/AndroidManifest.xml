@@ -2,6 +2,12 @@
     <!-- O app só funciona logado e tudo vem do Supabase/TMDB: internet é obrigatória
          também em release (o template só a declara nos manifestos de debug/profile). -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Lembrete de cancelamento (fase 07): notificação local 3 dias antes da renovação.
+         POST_NOTIFICATIONS é pedida em tempo de execução no Android 13+; RECEIVE_BOOT_COMPLETED
+         deixa o plugin reagendar depois de reiniciar o aparelho. Agendamento inexato de
+         propósito: sem SCHEDULE_EXACT_ALARM (a Play audita e o aviso não precisa de minuto certo). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:label="Plateia"
@@ -43,6 +49,17 @@
                 <data android:scheme="https" android:host="joao-jleite.github.io" android:pathPrefix="/plateia/u/"/>
             </intent-filter>
         </activity>
+        <!-- flutter_local_notifications: quem dispara o lembrete agendado e quem o
+             reagenda depois de reiniciar ou atualizar o app. -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

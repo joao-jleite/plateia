@@ -54,7 +54,9 @@ void main() {
 
     await tester.tap(find.widgetWithText(Tab, 'Quero ver'));
     await tester.pumpAndSettle();
-    expect(find.byType(EntryPosterTile), findsNWidgets(2));
+    // 8 "quero ver" no diário de amostra (2 da fase 04 + 6 da fase 07, para a aba
+    // Assinar); a grade é preguiçosa e só monta o que cabe na tela do teste
+    expect(find.byType(EntryPosterTile), findsAtLeastNWidgets(3));
 
     await tester.tap(find.widgetWithText(Tab, 'Listas'));
     await tester.pumpAndSettle();

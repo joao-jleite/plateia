@@ -12,12 +12,14 @@ import '../../features/notifications/presentation/notifications_providers.dart';
 import '../../features/onboarding/presentation/my_profile_provider.dart';
 import '../../features/settings/data/account_repository.dart';
 import '../../features/social/presentation/social_providers.dart';
+import '../../features/subscribe/presentation/subscribe_providers.dart';
 import 'fixture_auth_repository.dart';
 import 'fixture_catalog_repository.dart';
 import 'fixture_diary.dart';
 import 'fixture_import_repository.dart';
 import 'fixture_netflix_csv.dart';
 import 'fixture_social.dart';
+import 'fixture_subscribe_repository.dart';
 
 /// Troca os repositórios do Supabase pelos de amostra. Usado por `main.dart`
 /// com `--dart-define=BACKEND=fixtures` (nunca em release) e pelos testes de
@@ -31,6 +33,7 @@ List<Override> fixtureOverrides({
   FixtureSocialStore? social,
   FixtureImportRepository? imports,
   FeedRepository? feed,
+  FixtureSubscribeRepository? subscribe,
   bool failWrites = false,
   Duration latency = const Duration(milliseconds: 250),
 }) {
@@ -40,6 +43,9 @@ List<Override> fixtureOverrides({
   // a rede social se liga ao diário (visibilidade, atividades por "trigger")
   final socialStore = social ?? FixtureSocialStore(store);
   final importRepo = imports ?? FixtureImportRepository(store, authRepo, latency: latency, failWrites: failWrites);
+  // a aba Assinar lê o diário, o feed e o "cache" do catálogo de amostra
+  final subscribeRepo = subscribe ??
+      FixtureSubscribeRepository(store, socialStore, authRepo, catalog: catalogRepo, latency: latency, failWrites: failWrites);
   return [
     importRepositoryProvider.overrideWith((ref) => importRepo),
     // botão "Usar CSV de exemplo" na tela de importar (só com fixtures)
@@ -61,5 +67,6 @@ List<Override> fixtureOverrides({
     feedRepositoryProvider.overrideWith((ref) => feed ?? FixtureFeedRepository(socialStore, authRepo, latency: latency, failWrites: failWrites)),
     notificationsRepositoryProvider
         .overrideWith((ref) => FixtureNotificationsRepository(socialStore, authRepo, latency: latency, failWrites: failWrites)),
+    subscribeRepositoryProvider.overrideWith((ref) => subscribeRepo),
   ];
 }

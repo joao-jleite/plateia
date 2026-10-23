@@ -17,6 +17,8 @@ import 'package:watchlog/features/catalog/data/catalog_repository.dart';
 import 'package:watchlog/features/feed/data/feed_repository.dart';
 import 'package:watchlog/features/import_netflix/presentation/import_providers.dart';
 import 'package:watchlog/features/social/presentation/share_profile.dart';
+import 'package:watchlog/features/subscribe/data/reminder_scheduler.dart';
+import 'package:watchlog/features/subscribe/presentation/subscribe_providers.dart';
 import 'package:watchlog/features/title/domain/watch_action.dart';
 import 'package:watchlog/features/title/presentation/streaming_launcher.dart';
 
@@ -54,6 +56,7 @@ Future<FakeLauncher> pumpScreen(
   FixtureSocialStore? social,
   FixtureImportRepository? imports,
   FeedRepository? feed,
+  ReminderScheduler? scheduler,
   bool failWrites = false,
 }) async {
   final launcher = FakeLauncher();
@@ -82,6 +85,8 @@ Future<FakeLauncher> pumpScreen(
         imagesEnabledProvider.overrideWithValue(false),
         streamingLauncherProvider.overrideWithValue(launcher),
         shareTextProvider.overrideWithValue((text) async => launcher.shared.add(text)),
+        // sem plugin de notificação no teste: o lembrete fica em memória
+        reminderSchedulerProvider.overrideWithValue(scheduler ?? RecordingReminderScheduler()),
         // o isolate do `compute` não termina no tempo falso do testWidgets
         backgroundRunnerProvider.overrideWithValue(inlineRunner),
         ...overrides,

@@ -22,6 +22,12 @@ class FixtureCatalogRepository implements CatalogRepository {
 
   static const _ttl = Duration(days: 7);
 
+  /// O detalhe deste título já foi aberto (e, portanto, "onde assistir" está
+  /// em cache)? A aba Assinar (fase 07) usa para um título marcado como nunca
+  /// consultado (`FixtureTitle.providersCached = false`) sair do "sem dados"
+  /// depois que a pessoa abre o detalhe, como no banco de verdade.
+  bool hasFetched(MediaType type, int tmdbId) => _fetchedAt.containsKey('${type.path}/$tmdbId');
+
   @override
   Future<SearchPage> search(String query, {int page = 1}) async {
     await Future<void>.delayed(latency);

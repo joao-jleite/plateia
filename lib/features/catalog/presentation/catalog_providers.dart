@@ -18,6 +18,17 @@ CatalogRepository catalogRepository(Ref ref) =>
 Future<HomeSections> homeSections(Ref ref) =>
     ref.watch(catalogRepositoryProvider).homeSections();
 
+/// Sobe quando um detalhe de título chega com "onde assistir" renovado (a tela
+/// do título avisa). A aba Assinar observa: um título "sem dados" entra na
+/// conta assim que alguém abre o detalhe dele, sem puxar para atualizar.
+@Riverpod(keepAlive: true)
+class TitleCacheVersion extends _$TitleCacheVersion {
+  @override
+  int build() => 0;
+
+  void bump() => state++;
+}
+
 /// Detalhe do título com cache em memória por (tipo, id) enquanto o app vive.
 /// O cache de verdade (30 d / 7 d) está no Postgres, atrás da Edge Function.
 @Riverpod(keepAlive: true)

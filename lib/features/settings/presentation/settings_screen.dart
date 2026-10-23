@@ -77,6 +77,13 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(Routes.import),
           ),
+          ListTile(
+            leading: const Icon(Icons.subscriptions_outlined),
+            title: const Text('Meus streamings'),
+            subtitle: const Text('O que você assina, data de renovação e lembrete para cancelar'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.mySubscriptions),
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.info_outline),

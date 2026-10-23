@@ -24,6 +24,11 @@ class TitleScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = titleDetailProvider(type, tmdbId);
     final detail = ref.watch(provider);
+    // detalhe novo = cache de "onde assistir" renovado no servidor: a aba
+    // Assinar (fase 07) recalcula e um título "sem dados" entra na conta
+    ref.listen(provider, (previous, next) {
+      if (next.hasValue && next.value != previous?.value) ref.read(titleCacheVersionProvider.notifier).bump();
+    });
 
     return Scaffold(
       appBar: AppBar(title: Text(detail.value?.title.title ?? '')),

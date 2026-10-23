@@ -41,7 +41,7 @@ Tudo o que só você pode fazer (contas, chaves, celular, dinheiro). Cada fase a
   1. Project Settings → API: copiar **Project URL** e **anon key** para um arquivo `.env` na raiz do repo (já está no `.gitignore`) como `SUPABASE_URL=` e `SUPABASE_ANON_KEY=`. A `service_role` **não** vai para o app; só para `tools/db/.env` se a fase 06 pedir (seed de contas de teste).
   2. No PowerShell, na pasta do projeto: `supabase login` (abre o navegador) e `supabase link --project-ref <ref do projeto>`. Com isso a fase 03 aplica o banco com `supabase db push`.
   3. Authentication → URL Configuration → Redirect URLs: adicionar `io.github.joaojleite.watchlog://login-callback`.
-- [ ] **Conferir os preços** quando quiser (dashboard → Table Editor → `provider_prices`): corrigir `price_cents` e marcar `is_estimate = false`. Fontes: página de planos de cada streaming. Fase 07 usa.
+- [ ] **Conferir os preços** quando quiser (dashboard → Table Editor → `provider_prices`): corrigir `price_cents` e marcar `is_estimate = false`. Fontes: página de planos de cada streaming. A fase 07 usa; o passo a passo está no item 1 da seção "Fase 07", abaixo.
 - [x] ~~**Opcional:** instalar o Deno~~ → instalei na fase 03 por `npm i -g deno` (2.9.6); `deno task check` e `deno task test` rodam em `supabase/functions/`.
 
 ## Fase 03 · Base e catálogo
@@ -204,10 +204,38 @@ Seguir (público aceita na hora; privado vira pedido, com aba de pedidos), feed 
 - [x] ~~O intent-filter de `/plateia/u/<username>` abre o app em `/profile/<username>`~~ → conferido no emulador (`adb shell am start -a android.intent.action.VIEW -d https://joao-jleite.github.io/plateia/u/foxer`); a rota precisou do prefixo `/plateia`. Falta só o `share_plus` abrir a folha nativa no celular (no emulador aparece o seletor do Android).
 - [ ] Ao trocar de conta no mesmo aparelho (sair e entrar com outra), o sino e as listas vêm da conta nova (corrigido no `unreadCount`; confirmar os outros providers `keepAlive` no app real).
 
+## Fase 07 · Qual assinar
+
+Recomendador puro (com a lista de 12 títulos e a conta à mão no teste), aba Assinar com a frase e a conta aberta, Meus streamings com economia no ano e o lembrete local de cancelamento estão prontos e testados (211 testes Dart, `npm run db:test` 6/6, `deno task test` 30/30), e o fluxo rodou no emulador com os dados de amostra (capturas em `docs/capturas/fase07/`: recomendação como @foxer com títulos dos amigos, chave de anúncios, "sem dados", Meus streamings, permissão de notificação, notificação de teste e o lembrete agendado aparecendo). Como nas fases anteriores, **nada rodou contra um projeto Supabase real**. O `plateia-fase07.apk` na Área de Trabalho roda com dados de amostra: entre como `@foxer` e abra a aba Assinar; em Meus streamings, o sino dispara um lembrete de teste e marcar um streaming com renovação em menos de 3 dias faz o lembrete tocar 1 minuto depois.
+
+### O que você roda (depois dos passos das fases 03–06)
+
+- [ ] **1. Conferir e corrigir os preços** (é o que destrava o "estimativa" da tela): dashboard → Table Editor → `provider_prices`. Para cada linha, abrir a página de planos do streaming, acertar `price_cents` (centavos: R$ 44,90 = 4490), `plan_label` se o nome do plano mudou, e marcar `is_estimate = false`. O `updated_at` sobe sozinho e é a data que aparece em "Preços de DD/MM/AAAA"; preço com mais de 60 dias ganha aviso vermelho no cartão, então vale repetir isso a cada 2 meses. Se um streaming tiver plano que não existe na tabela (por exemplo, Netflix sem o "com anúncios" no Brasil), apague a linha; se faltar, insira com o mesmo `provider_id`. Nada disso exige deploy: o app lê a tabela.
+- [ ] **2. Nenhuma migração nova**: `npm run db:test` tem que dar 6/6 (o `0006_subscribe.sql` testa só o que a `0001` já tinha). `supabase db push` não muda nada nesta fase.
+- [ ] **3. Fluxo real** (`flutter run --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=…`): marque 5–10 títulos como "Quero ver" **abrindo o detalhe de cada um** (é o que grava o cache de "onde assistir"; um título que entrou pela importação da Netflix e nunca foi aberto aparece em "Sem dados" até você abrir), vá à aba Assinar e confira a frase e a conta. Depois, Meus streamings → marque o que você assina de verdade com a data da próxima cobrança → confira a economia no ano. Toque no sino ("Testar lembrete"): o Android 13+ pede permissão e a notificação aparece. Me mande "verifica a fase 07" com uma captura da aba.
+- [ ] **4. Lembrete no celular de verdade** (o emulador não prova tudo): marque um streaming com renovação para daqui a 2 dias → o lembrete toca 1 minuto depois; e um com renovação daqui a 10 dias → `adb shell dumpsys alarm | grep watchlog` (ou simplesmente esperar) mostra o alarme 3 dias antes, às 10h. Se o seu celular (Xiaomi/Samsung com economia de bateria agressiva) não tocar o agendado, me avise: a saída é pedir à pessoa que desligue a otimização de bateria para o app ou passar para alarme exato (`SCHEDULE_EXACT_ALARM`), que a Play audita.
+
+### Decisões de spec que merecem o seu olhar (▶ também no `CLAUDE.md`, Decisões de 23/10)
+
+- ▶ **Ranking, "por título" e combinação em peso** (meu título 1, dos amigos 0,3). Com só títulos seus é a conta de cabeça (R$ 39,90 ÷ 8); com títulos de amigos o "por título" sobe um pouco porque eles valem menos. Alternativa: contar títulos sem peso (mais simples de ler, mas 3 títulos de amigos passam a valer um segundo streaming).
+- ▶ **Chave "aceito anúncios" não persiste**: volta desligada quando o app reabre. Persistir é uma linha com `shared_preferences`, que ainda não está no projeto; se te incomodar, entra na fase 08.
+- ▶ **Título dos amigos = assistiu, avaliou ≥ 4 ou escreveu review** nos últimos 30 dias; "começou a assistir" e nota abaixo de 4 não entram. Alternativa: contar "assistindo" também (sinal mais fraco, mas mais atual).
+- ▶ **Grátis não conta para ninguém** (quem já dá para ver grátis não precisa de assinatura) e aparece numa seção própria; **streaming fora da lista de preços** (ex.: Looke, Pluto) aparece como "em outro streaming" sem entrar na conta. Alternativa: incluir esses serviços em `providers`/`provider_prices` e eles passam a competir.
+- ▶ **Lembrete inexato** (o Android pode atrasar alguns minutos), às 10h, 3 dias antes; renovação já passada é projetada mês a mês só na tela. Alternativa: alarme exato, com a permissão especial que a Play audita.
+- ▶ **"Preços de DD/MM" mostra a data mais recente** e o aviso de preço velho fica no cartão do streaming. Alternativa: mostrar a mais antiga na linha de cima.
+
+### O que eu verifico quando o projeto existir
+
+- [ ] PostgREST aceita os selects da aba: `entries` com `inFilter('status', ['want','watching'])` + `title:titles(*)`; a view `feed` com `neq('user_id')`, `inFilter('kind')`, `gte('created_at')` e os embeds `user:profiles(*)`, `title:titles(*)`; `title_sync` com `not('providers_fetched_at','is',null)`; `title_availability` com `provider:providers(parent_id)`; `user_subscriptions` com `provider:providers(*)` (FK para `providers`, legível por `authenticated`).
+- [ ] Upsert em `user_subscriptions` com `onConflict: 'user_id,provider_id'` passa pela policy de insert **e** de update do dono (o teste SQL cobre; confirmar pelo app, inclusive o `23514` ao mandar plano inválido).
+- [ ] `in` com 100 ids em `title_sync`/`title_availability` cabe na URL do PostgREST (o app lota de 100 em 100).
+- [ ] Um título importado da Netflix e nunca aberto aparece em "Sem dados" e sai de lá ao abrir o detalhe (o `catalog-title` grava `title_sync`).
+- [ ] Ao trocar de conta no mesmo aparelho, a lista de Meus streamings e os lembretes agendados são da conta nova (`sync()` cancela os da anterior).
+
 ## Para as próximas fases (já dá para adiantar)
 
 - [x] ~~**Supabase**: criar projeto~~ → movido para a fase 02, acima.
 - [x] ~~**Google Cloud**: credencial OAuth para o login Google~~ → detalhado no passo 6 da fase 03, acima.
 - [ ] **Conta Google Play Console** (US$ 25 uma vez) e **keystore de release** (guardar senha fora do git). Fase 08.
 - [ ] **Antes de cobrar qualquer coisa ou colocar anúncio**: pedir licença comercial do TMDB (e-mail para `sales@themoviedb.org`, assunto "Commercial API Use", informando o país) e assinar o Starter da Streaming Availability (US$ 49/mês). Fase 08.
-- [ ] **Decidir preço** do plano premium (se houver). Fase 07/08.
+- [ ] **Decidir preço** do plano premium (se houver). Fase 08 (a 07 não precisou).

@@ -1,4 +1,4 @@
-# Como rodar · Plateia (fases 03–06)
+# Como rodar · Plateia (fases 03–07)
 
 Tudo no PowerShell, na raiz do repo. Flutter 3.44.8, Node ≥ 20, Deno 2 (`npm i -g deno`), Supabase CLI.
 
@@ -25,6 +25,8 @@ Fase 05 (importar a Netflix): a tela `/onboarding/import` (e `/import`, pelas Co
 
 Fase 06 (rede social): a tela de login ganhou "Entrar como (dados de amostra)" com `@foxer` (público), `@camila` (privado) e `@vini` (público); sair (Perfil → ⚙ → Sair) e entrar com outro mantém o que o anterior fez, porque a memória é do processo (`FixtureSocialStore`, `lib/dev/fixtures/fixture_social.dart`, que espelha os triggers do banco: privacidade no seguir, limpeza no bloqueio, contadores, notificações). Cena inicial: foxer ↔ camila se seguem, vini ↔ foxer se seguem, camila e vini curtiram/comentaram a review do foxer, foxer tem um check-in ativo. Rotas novas: `/feed` (aba), `/activity/:id`, `/search/users`, `/notifications`, `/follow-requests`, `/settings/blocked`, `/profile/:username/followers|following`, `/onboarding/follow` e `/u/:username` (link de convite, redireciona para o perfil). Para simular o servidor recusando (otimista + Desfazer): `fixtureOverrides(failWrites: true)`; para testar o feed em erro, `pumpScreen(..., feed: repositórioQueFalha)`. `pumpScreen` sobe as telas com `AppTheme.light()`: o tema dá largura mínima infinita a `FilledButton`/`OutlinedButton`, então um botão dentro de `Row` ou `ListTile.trailing` precisa de `minimumSize: Size(0, h)` (o teste estoura com "forces an infinite width" se esquecer).
 
+Fase 07 (qual assinar): a aba **Assinar** (`/subscribe`) calcula a recomendação com o diário de amostra (o usuário por e-mail tem 8 "quero ver" + One Piece assistindo: HBO Max resolve 3, Netflix 2, Crunchyroll/Apple TV+/Paramount+ 1; `Furiosa` só aluguel; `Bebê Rena` entrou "sem dados" e passa a contar depois que o detalhe dele é aberto, como `title_sync` no banco). Entrando como `@foxer`, os títulos dos amigos entram com peso 0,3 (The Last of Us da @camila e Duna 2 do @vini, ambos na HBO Max) e desempatam contra a Netflix. Preços em `FixturePrices` (`lib/dev/fixtures/fixture_data.dart`, espelho do seed, todos "estimativa"; o do Paramount+ é de 01/08 de propósito, para mostrar o aviso de preço velho). **Meus streamings** (`/subscribe/mine`, também em Perfil → ⚙): quem entra já assina Netflix (renova em 10 dias) e mais um (Prime Video; o foxer, Crunchyroll); marcar/editar abre a folha (plano, preço que paga, data, lembrete) e grava otimista com Desfazer. O lembrete é `flutter_local_notifications` de verdade no emulador: o sino na barra ("Testar lembrete") dispara uma notificação na hora (pede `POST_NOTIFICATIONS` no Android 13+), e uma renovação marcada para daqui a menos de 3 dias agenda o lembrete para 1 minuto depois (`adb shell dumpsys alarm | grep watchlog` lista os alarmes). Nos testes de widget o agendador é `RecordingReminderScheduler` (`pumpScreen(..., scheduler: …)`) e o relógio da janela de 30 dias é fixado por `clockProvider.overrideWithValue(() => DateTime(2026, 10, 23))`. A função pura é `recommend()` em `lib/features/subscribe/domain/recommender.dart`; a conta à mão está em `test/features/subscribe/domain/recommender_test.dart`.
+
 Ensaio com um CSV real, sem servidor (só a metade que roda no aparelho): `dart run tool/import_dry_run.dart research/NetflixViewingHistory.csv [--profile "Nome"] [--names]`.
 
 ### Com o projeto Supabase
@@ -39,7 +41,7 @@ Sem `SUPABASE_URL`/`SUPABASE_ANON_KEY` o app abre numa tela "configuração ause
 
 ```powershell
 flutter build apk --release --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=… --dart-define=GOOGLE_WEB_CLIENT_ID=…   # produto
-flutter build apk --profile --dart-define=BACKEND=fixtures                                                                     # demonstração (é o plateia-fase06.apk)
+flutter build apk --profile --dart-define=BACKEND=fixtures                                                                     # demonstração (é o plateia-fase07.apk)
 ```
 
 Saída em `build/app/outputs/flutter-apk/`. O mais novo vai para a Área de Trabalho; os antigos para `dist/` (fora do git).
@@ -47,7 +49,7 @@ Saída em `build/app/outputs/flutter-apk/`. O mais novo vai para a Área de Trab
 ## Banco
 
 ```powershell
-npm run db:test              # Postgres 17 local: migrações 0001–0005 + checagem de RLS + tools/db/tests/*.sql (5 arquivos, ~13 s)
+npm run db:test              # Postgres 17 local: migrações 0001–0005 + checagem de RLS + tools/db/tests/*.sql (6 arquivos, ~8 s)
 npm run db:test:keep         # idem, deixa o banco de pé em localhost:54329 até apertar Enter
 npm run db:seed-dev:local    # com o banco de pé: 3 contas de teste + diários + follows no Postgres local (ensaio do seed)
 npm run db:seed-dev:dry      # só imprime o plano do seed

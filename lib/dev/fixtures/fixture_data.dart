@@ -6,6 +6,7 @@
 
 import '../../core/model/media_type.dart';
 import '../../features/catalog/domain/catalog_models.dart';
+import '../../features/subscribe/domain/subscribe_models.dart';
 
 abstract final class FixtureProviders {
   static const netflix = StreamingProvider(
@@ -18,8 +19,11 @@ abstract final class FixtureProviders {
     androidPackage: 'com.amazon.avod.thirdpartyclient', webDomain: 'www.primevideo.com',
     searchUrlTemplate: 'https://www.primevideo.com/search?phrase={q}', isFeatured: true, displayOrder: 2,
   );
+  // Sem logo de propósito (fase 07): o caminho anotado na fase 03 era de outro
+  // serviço (aparecia a Apple TV); placeholder é melhor que marca errada. O
+  // `providers-sync` traz o certo no projeto real.
   static const disney = StreamingProvider(
-    id: 337, slug: 'disney', name: 'Disney+', logoPath: '/9ghgSC0MA082EL6HLCW3GalykFD.jpg',
+    id: 337, slug: 'disney', name: 'Disney+',
     androidPackage: 'com.disney.disneyplus', webDomain: 'www.disneyplus.com',
     searchUrlTemplate: null, isFeatured: true, displayOrder: 3,
   );
@@ -38,8 +42,9 @@ abstract final class FixtureProviders {
     androidPackage: 'com.apple.atve.androidtv.appletv', webDomain: 'tv.apple.com',
     searchUrlTemplate: 'https://tv.apple.com/br/search?term={q}', isFeatured: true, displayOrder: 6,
   );
+  // Idem: o caminho anotado mostrava o Filmbox+.
   static const paramount = StreamingProvider(
-    id: 531, slug: 'paramount', name: 'Paramount+', logoPath: '/fbveJTcro9Xw2KuPIIoPPePHiwy.jpg',
+    id: 531, slug: 'paramount', name: 'Paramount+',
     androidPackage: 'com.cbs.app', webDomain: 'www.paramountplus.com',
     searchUrlTemplate: 'https://www.paramountplus.com/br/search/?q={q}', isFeatured: true, displayOrder: 7,
   );
@@ -60,11 +65,16 @@ abstract final class FixtureProviders {
 
 /// Um título de amostra com a disponibilidade que a Edge Function devolveria.
 class FixtureTitle {
-  const FixtureTitle({required this.title, required this.availability, this.linksStatus = 'ok'});
+  const FixtureTitle({required this.title, required this.availability, this.linksStatus = 'ok', this.providersCached = true});
 
   final Title title;
   final List<Availability> availability;
   final String linksStatus;
+
+  /// `false` = "onde assistir" nunca foi consultado para este título (como um
+  /// título que entrou pela importação da Netflix e ainda não foi aberto): a
+  /// aba Assinar mostra "sem dados" até alguém abrir o detalhe (fase 07).
+  final bool providersCached;
 
   CatalogItem get item => CatalogItem(
         tmdbId: title.tmdbId,
@@ -366,7 +376,177 @@ final fixtureTitles = <FixtureTitle>[
     availability: const [],
     linksStatus: 'not_found',
   ),
+  // ---- fase 07: títulos para a aba Assinar ter uma conta de verdade ----------
+  FixtureTitle(
+    title: Title(
+      id: 'f1a0b2c3-0000-4000-8000-000000076331',
+      tmdbId: 76331,
+      mediaType: MediaType.tv,
+      title: 'Succession',
+      overview: 'Os Roy disputam o controle do conglomerado de mídia da família enquanto o patriarca Logan decide quem o sucede.',
+      releaseDate: DateTime(2018, 6, 3),
+      year: 2018,
+      genres: const ['Drama'],
+      numberOfSeasons: 4,
+      numberOfEpisodes: 39,
+      episodeRunTime: 60,
+      status: 'Ended',
+      voteAverage: 8.3,
+      fetchedAt: _fetched,
+    ),
+    availability: [
+      _offer(FixtureProviders.max, OfferType.flatrate, link: 'https://play.hbomax.com/show/urn:hbo:series:GWoD5-AWuOgLDwwEAAAFd'),
+    ],
+  ),
+  FixtureTitle(
+    title: Title(
+      id: 'f1a0b2c3-0000-4000-8000-000000111803',
+      tmdbId: 111803,
+      mediaType: MediaType.tv,
+      title: 'The White Lotus',
+      overview: 'Hóspedes e funcionários de um resort de luxo se enredam ao longo de uma semana que termina em morte.',
+      releaseDate: DateTime(2021, 7, 11),
+      year: 2021,
+      genres: const ['Comédia', 'Drama', 'Mistério'],
+      numberOfSeasons: 3,
+      numberOfEpisodes: 21,
+      episodeRunTime: 60,
+      status: 'Returning Series',
+      voteAverage: 7.9,
+      fetchedAt: _fetched,
+    ),
+    availability: [
+      _offer(FixtureProviders.max, OfferType.flatrate, link: 'https://play.hbomax.com/show/urn:hbo:series:GYJ6hLwnbhgKlMwEAAAIR'),
+    ],
+  ),
+  FixtureTitle(
+    title: Title(
+      id: 'f1a0b2c3-0000-4000-8000-000000095396',
+      tmdbId: 95396,
+      mediaType: MediaType.tv,
+      title: 'Ruptura',
+      originalTitle: 'Severance',
+      overview: 'Funcionários da Lumon aceitam separar cirurgicamente as memórias do trabalho das da vida pessoal.',
+      releaseDate: DateTime(2022, 2, 17),
+      year: 2022,
+      genres: const ['Drama', 'Mistério', 'Sci-Fi & Fantasy'],
+      numberOfSeasons: 2,
+      numberOfEpisodes: 19,
+      episodeRunTime: 50,
+      status: 'Returning Series',
+      voteAverage: 8.4,
+      fetchedAt: _fetched,
+    ),
+    availability: [
+      _offer(FixtureProviders.apple, OfferType.flatrate, link: 'https://tv.apple.com/br/show/ruptura/umc.cmc.1srk2goyh2q2zdxcx605w8vtx'),
+    ],
+  ),
+  FixtureTitle(
+    title: Title(
+      id: 'f1a0b2c3-0000-4000-8000-000000194764',
+      tmdbId: 194764,
+      mediaType: MediaType.tv,
+      title: 'Pinguim',
+      originalTitle: 'The Penguin',
+      overview: 'Depois da queda de Carmine Falcone, Oz Cobb tenta tomar o submundo de Gotham.',
+      releaseDate: DateTime(2024, 9, 19),
+      year: 2024,
+      genres: const ['Crime', 'Drama'],
+      numberOfSeasons: 1,
+      numberOfEpisodes: 8,
+      episodeRunTime: 60,
+      status: 'Ended',
+      voteAverage: 8.5,
+      fetchedAt: _fetched,
+    ),
+    availability: [
+      _offer(FixtureProviders.max, OfferType.flatrate, link: 'https://play.hbomax.com/show/urn:hbo:series:GZuQzRQfQJ4PDwwEAAACy'),
+    ],
+  ),
+  // Entrou no diário sem ninguém abrir o detalhe: sem cache de "onde assistir"
+  // → a aba Assinar mostra "sem dados" até o detalhe ser aberto.
+  FixtureTitle(
+    title: Title(
+      id: 'f1a0b2c3-0000-4000-8000-000000241259',
+      tmdbId: 241259,
+      mediaType: MediaType.tv,
+      title: 'Bebê Rena',
+      originalTitle: 'Baby Reindeer',
+      overview: 'Um comediante em início de carreira é perseguido por uma mulher a quem ofereceu uma xícara de chá.',
+      releaseDate: DateTime(2024, 4, 11),
+      year: 2024,
+      genres: const ['Drama', 'Crime'],
+      numberOfSeasons: 1,
+      numberOfEpisodes: 7,
+      episodeRunTime: 32,
+      status: 'Ended',
+      voteAverage: 7.9,
+      fetchedAt: _fetched,
+    ),
+    availability: [
+      _offer(FixtureProviders.netflix, OfferType.flatrate, link: 'https://www.netflix.com/title/81219887'),
+    ],
+    providersCached: false,
+  ),
+  // Só aluguel e compra: aparece "à parte" na aba Assinar.
+  FixtureTitle(
+    title: Title(
+      id: 'f1a0b2c3-0000-4000-8000-000000786892',
+      tmdbId: 786892,
+      mediaType: MediaType.movie,
+      title: 'Furiosa: Uma Saga Mad Max',
+      originalTitle: 'Furiosa: A Mad Max Saga',
+      overview: 'Sequestrada do Lugar Verde, a jovem Furiosa cruza a Terra Devastada entre o senhor da guerra Dementus e o Immortan Joe.',
+      releaseDate: DateTime(2024, 5, 22),
+      year: 2024,
+      genres: const ['Ação', 'Aventura', 'Ficção científica'],
+      runtimeMinutes: 148,
+      status: 'Released',
+      voteAverage: 7.6,
+      fetchedAt: _fetched,
+    ),
+    availability: [
+      _offer(FixtureProviders.prime, OfferType.rent, price: 1490),
+      _offer(FixtureProviders.apple, OfferType.buy, price: 4990),
+    ],
+  ),
 ];
+
+/// Preços de referência da aba Assinar: espelham o seed de `provider_prices`
+/// (migração 0001), todos **estimativa** (`isEstimate`) até o João conferir.
+/// O do Paramount+ está propositalmente velho (agosto) para a tela mostrar o
+/// aviso de preço com mais de 60 dias.
+abstract final class FixturePrices {
+  static final updatedAt = DateTime(2026, 10, 22, 9, 0);
+  static final staleAt = DateTime(2026, 8, 1, 9, 0);
+
+  static ProviderPrice _p(int providerId, PricePlan plan, String label, int cents, {DateTime? at}) => ProviderPrice(
+        providerId: providerId,
+        plan: plan,
+        planLabel: label,
+        priceCents: cents,
+        isEstimate: true,
+        updatedAt: at ?? updatedAt,
+      );
+
+  static final all = <ProviderPrice>[
+    _p(8, PricePlan.ads, 'Padrão com anúncios', 2090),
+    _p(8, PricePlan.standard, 'Padrão', 4490),
+    _p(8, PricePlan.premium, 'Premium', 5990),
+    _p(119, PricePlan.standard, 'Prime (mensal)', 1990),
+    _p(337, PricePlan.ads, 'Padrão com anúncios', 2790),
+    _p(337, PricePlan.standard, 'Padrão', 4390),
+    _p(337, PricePlan.premium, 'Premium', 6690),
+    _p(1899, PricePlan.ads, 'Básico com anúncios', 2990),
+    _p(1899, PricePlan.standard, 'Padrão', 3990),
+    _p(1899, PricePlan.premium, 'Platinum', 5590),
+    _p(307, PricePlan.standard, 'Padrão', 2490),
+    _p(350, PricePlan.standard, 'Apple TV+', 2190),
+    _p(531, PricePlan.standard, 'Padrão', 1990, at: staleAt),
+    _p(283, PricePlan.standard, 'Fan', 1699),
+    _p(283, PricePlan.premium, 'Mega Fan', 2299),
+  ];
+}
 
 HomeSections fixtureHomeSections() {
   CatalogItem item(int tmdbId) => fixtureTitles.firstWhere((t) => t.title.tmdbId == tmdbId).item;

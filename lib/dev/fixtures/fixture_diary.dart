@@ -124,6 +124,16 @@ class FixtureDiaryStore {
     _put(userId, titleByTmdb(598), EntryStatus.watched, rating: 4.5, watchedAt: DateTime(2026, 8, 15));
     _put(userId, titleByTmdb(66732), EntryStatus.want);
     _put(userId, titleByTmdb(73586), EntryStatus.want);
+    // fase 07: "quero ver" suficiente para a aba Assinar ter uma conta de verdade
+    // (HBO Max resolve 3, Netflix 2, Apple/Paramount/Crunchyroll 1; Furiosa só
+    // aluguel; Bebê Rena sem cache de "onde assistir" → "sem dados"). The Last
+    // of Us fica de fora de propósito: o CSV de exemplo da importação o cria.
+    _put(userId, titleByTmdb(194764), EntryStatus.want);
+    _put(userId, titleByTmdb(76331), EntryStatus.want);
+    _put(userId, titleByTmdb(111803), EntryStatus.want);
+    _put(userId, titleByTmdb(95396), EntryStatus.want);
+    _put(userId, titleByTmdb(241259), EntryStatus.want);
+    _put(userId, titleByTmdb(786892), EntryStatus.want);
 
     final maratonar = _newList(userId, const ListDraft(name: 'Para maratonar', isRanked: true), now.subtract(const Duration(days: 5)));
     _addItem(maratonar.id, titleByTmdb(66732).id);
@@ -137,6 +147,15 @@ class FixtureDiaryStore {
     _put(foxer.id, titleByTmdb(209867), EntryStatus.watched, rating: 5, review: 'Melhor anime de 2023, fácil.', watchedAt: DateTime(2026, 10, 1));
     _put(foxer.id, titleByTmdb(872585), EntryStatus.watched, rating: 4.5, watchedAt: DateTime(2026, 9, 20));
     _put(foxer.id, titleByTmdb(37854), EntryStatus.watching, rating: 4, season: 1, episode: 30, watchedAt: DateTime(2026, 10, 20));
+    // fase 07: o "quero ver" do foxer (a conta da aba Assinar entrando como ele:
+    // HBO Max 2 meus + 2 dos amigos [camila: The Last of Us; vini: Duna 2] = 2,6 > Netflix 2)
+    _put(foxer.id, titleByTmdb(66732), EntryStatus.want);
+    _put(foxer.id, titleByTmdb(76331), EntryStatus.want);
+    _put(foxer.id, titleByTmdb(111803), EntryStatus.want);
+    _put(foxer.id, titleByTmdb(95396), EntryStatus.want);
+    _put(foxer.id, titleByTmdb(73586), EntryStatus.want);
+    _put(foxer.id, titleByTmdb(241259), EntryStatus.want);
+    _put(foxer.id, titleByTmdb(786892), EntryStatus.want);
     final animes = _newList(foxer.id, const ListDraft(name: 'Animes de 2023'), DateTime(2026, 10, 2));
     _addItem(animes.id, titleByTmdb(209867).id);
     // Camila: conteúdo existe (os contadores aparecem), mas fica escondido.

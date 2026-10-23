@@ -22,6 +22,9 @@ abstract final class Routes {
   static const subscribe = '/subscribe';
   static const profile = '/profile';
 
+  /// Meus streamings (fase 07): o que assino, renovação e lembrete.
+  static const mySubscriptions = '/subscribe/mine';
+
   static const settings = '/settings';
   static const editProfile = '/settings/profile';
   static const about = '/settings/about';
