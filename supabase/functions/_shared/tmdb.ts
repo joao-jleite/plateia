@@ -37,16 +37,22 @@ export function createTmdbClient(
   fetchImpl: typeof fetch = fetch,
 ): TmdbClient {
   const limiter = semaphore(MAX_CONCURRENT);
+  // TMDB_API_KEY pode ser o token v4 ("API Read Access Token", JWT que começa com eyJ, vai como
+  // Bearer) ou a chave v3 (32 hexadecimais, vai como ?api_key=). Os dois valem nos endpoints v3.
+  const isV3Key = /^[0-9a-f]{32}$/i.test(token);
   return {
     get(path, params = {}) {
       return limiter(async () => {
         const url = new URL(TMDB_BASE + path);
         url.searchParams.set("language", "pt-BR");
         for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+        if (isV3Key) url.searchParams.set("api_key", token);
         counter.inc();
         let res: Response;
         try {
-          res = await fetchImpl(url, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } });
+          const headers: Record<string, string> = { Accept: "application/json" };
+          if (!isV3Key) headers.Authorization = `Bearer ${token}`;
+          res = await fetchImpl(url, { headers });
         } catch (err) {
           throw upstream(`TMDB fora do ar (${err instanceof Error ? err.message : "rede"}).`);
         }
