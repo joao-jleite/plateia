@@ -126,17 +126,22 @@ const checkins = [
 // Os dois têm a mesma interface: insert/update/select/createUser/deleteUser.
 // ───────────────────────────────────────────────────────────────────────────
 function readEnv() {
-  const file = join(here, '.env');
-  if (!existsSync(file)) {
-    throw new Error(`tools/db/.env não existe. Crie com SUPABASE_URL= e SUPABASE_SERVICE_ROLE_KEY= (ver docs/PENDENCIAS-JOAO.md, fase 06).`);
-  }
+  // Variáveis de ambiente têm prioridade (dá para rodar sem arquivo nenhum:
+  // `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… node tools/db/seed-dev.mjs`);
+  // o tools/db/.env continua valendo como alternativa, fora do git.
   const env = {};
-  for (const line of readFileSync(file, 'utf8').split('\n')) {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
-    if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+  for (const k of ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SEED_PASSWORD']) {
+    if (process.env[k]) env[k] = process.env[k];
+  }
+  const file = join(here, '.env');
+  if (existsSync(file)) {
+    for (const line of readFileSync(file, 'utf8').split('\n')) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+      if (m && !env[m[1]]) env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+    }
   }
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('tools/db/.env precisa de SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.');
+    throw new Error('Defina SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no ambiente ou em tools/db/.env (ver docs/PENDENCIAS-JOAO.md, fase 06).');
   }
   return env;
 }
@@ -207,7 +212,8 @@ class RestExecutor {
   }
 
   async count(table) {
-    const res = await fetch(`${this.url}/rest/v1/${table}?select=id`, { headers: { ...this.headers, Prefer: 'count=exact', Range: '0-0' } });
+    // `select=*`, não `select=id`: follows e likes têm chave composta, sem coluna id (o PostgREST devolvia 400 e a contagem saía 0).
+    const res = await fetch(`${this.url}/rest/v1/${table}?select=*`, { headers: { ...this.headers, Prefer: 'count=exact', Range: '0-0' } });
     const range = res.headers.get('content-range') || '';
     return Number(range.split('/')[1] ?? 0);
   }
